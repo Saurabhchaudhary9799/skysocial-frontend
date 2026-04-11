@@ -1,26 +1,93 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface: #f9f5ff;
+  --surface-container-low: #f3eeff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-high: #e3dfff;
+  --surface-container: #efecff;         /* ← add */
+  --surface-bright: #fcf8ff;            /* ← add */
+  --surface-dim: #dad8ed;               /* ← add */
+
+  --on-surface: #2c2a51;
+  --on-surface-variant: #464555;        /* ← add */
+
+  --primary: #3949AB;
+  --primary-container: #595cfb;         /* ← add (matches login button gradient) */
+  --on-primary: #ffffff;                /* ← add */
+
+  --tertiary: #b60051;
+  --neutral: #75729e;
+  --outline: #767586;                   /* ← add */
+  --outline-variant: #aca8d7;
+}
+
+html.dark {
+  --surface: #0a0a0a;
+  --surface-container-low: #141414;
+  --surface-container-lowest: #1c1c1c;
+  --surface-container-high: #222222;
+  --surface-container: #1a1a1a;
+  --surface-bright: #242424;
+  --surface-dim: #111111;
+
+  --on-surface: #ededed;
+  --on-surface-variant: #c8c5d0;
+
+  --on-primary: #ffffff;
+  --outline: #938f99;
+  --outline-variant: #46464f;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-background: var(--surface);
+  --color-foreground: var(--on-surface);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface-low: var(--surface-container-low);
+  --color-surface-card: var(--surface-container-lowest);
+  --color-surface-active: var(--surface-container-high);
+  --color-surface-container: var(--surface-container);       /* ← add */
+  --color-surface-bright: var(--surface-bright);             /* ← add */
+
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary: var(--on-primary);                     /* ← add */
+
+  --color-on-surface: var(--on-surface);                     /* ← add */
+  --color-on-surface-variant: var(--on-surface-variant);     /* ← add */
+
+  --color-tertiary: var(--tertiary);
+  --color-neutral: var(--neutral);
+  --color-outline: var(--outline);                           /* ← add */
+  --color-outline-variant: var(--outline-variant);           /* ← add */
+
+  --font-manrope: var(--font-manrope);                       /* ← add */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-vietnam);
+}
+
+.glass {
+  background: rgba(249, 245, 255, 0.7);
+  backdrop-filter: blur(24px);
+}
+
+.ghost-border {
+  border: 1px solid rgba(172, 168, 215, 0.15);
+}
+
+/* ← add these for the login page */
+.celestial-mesh {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(62, 63, 225, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(89, 92, 251, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(62, 63, 225, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(239, 236, 255, 1) 0px, transparent 50%);
+}
+
+.sunken-purple-shadow {
+  box-shadow: 0 20px 40px rgba(62, 63, 225, 0.06);
 }

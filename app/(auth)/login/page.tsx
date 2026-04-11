@@ -1,0 +1,253 @@
+"use client";
+
+import axios from "axios";
+import { useState } from "react";
+import { z } from "zod";
+import FormField from "@/components/ui/FormField";
+
+const loginSchema = z.object({
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can only contain letters, numbers, and underscores",
+    ),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+export default function Login() {
+  const initialFormData: LoginFormData = {
+    username: "",
+    password: "",
+  };
+
+  const [rememberMe, setRememberMe] = useState(true);
+  const [formData, setFormData] = useState<LoginFormData>({
+    ...initialFormData,
+  });
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof LoginFormData, string>>
+  >({});
+  const [apiError, setApiError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit() {
+    const result = loginSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors = z.flattenError(result.error).fieldErrors;
+      setErrors({
+        username: fieldErrors.username?.[0],
+        password: fieldErrors.password?.[0],
+      });
+      return;
+    }
+
+    setErrors({});
+    setApiError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/login`,
+        { ...result.data },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        },
+      );
+
+      console.log("login success", response.data);
+      setFormData(initialFormData);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setApiError(
+          error.response?.data?.message || "Login failed. Please try again.",
+        );
+      } else {
+        setApiError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background selection:bg-primary-container selection:text-on-primary overflow-hidden relative font-manrope celestial-mesh">
+      
+      <main className="flex items-center justify-center w-full px-4 relative z-10 py-10">
+        <div
+          className="w-full max-w-[520px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow"
+        >
+          {/* Logo */}
+          <div className="flex flex-col items-center gap-2 mb-6">
+            <div
+              className="relative w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container shadow-lg"
+            >
+              {/* Big sparkle */}
+              <svg
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-on-primary"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2l2 5.5L20 9l-6 2.5L12 17l-2-5.5L4 9l6-1.5L12 2z" />
+              </svg>
+
+              {/* Top small */}
+              <svg
+                className="absolute right-2 top-2 w-2.5 h-2.5 text-on-primary opacity-80"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2l1 3L16 6l-3 1-1 3-1-3-3-1 3-1 1-3z" />
+              </svg>
+
+              {/* Bottom small */}
+              <svg
+                className="absolute right-2 bottom-2 w-2.5 h-2.5 text-on-primary opacity-80"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2l1 3L16 6l-3 1-1 3-1-3-3-1 3-1 1-3z" />
+              </svg>
+            </div>
+
+            <span className="text-xl font-bold tracking-tighter text-primary">
+              SkySocial
+            </span>
+          </div>
+
+          {/* Heading */}
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-extrabold tracking-tighter text-on-surface mb-2">
+              Welcome Back
+            </h1>
+            <p className="text-sm text-on-surface-variant">
+              Step into the ether. Your celestial community is waiting.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <FormField
+              label="Username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="janedoe"
+              error={errors.username}
+            />
+
+            <FormField
+              label="Password"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              error={errors.password}
+              rightLabel={
+                <a
+                  href="#"
+                  className="text-primary text-xs font-semibold hover:underline"
+                >
+                  Forgot?
+                </a>
+              }
+            />
+
+            {/* Remember me */}
+            <div className="flex items-center gap-2 px-1">
+              <button
+                type="button"
+                onClick={() => setRememberMe(!rememberMe)}
+                className={`w-4 h-4 rounded-md flex items-center justify-center transition-colors ${
+                  rememberMe
+                    ? "bg-gradient-to-br from-primary to-primary-container"
+                    : "bg-surface-container"
+                }`}
+              >
+                {rememberMe && (
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="white"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+              <span className="text-xs text-on-surface-variant">
+                Keep me signed in
+              </span>
+            </div>
+
+            {apiError && <p className="text-sm text-red-500">{apiError}</p>}
+
+            {/* Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 rounded-full text-on-primary font-semibold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-br from-primary to-primary-container shadow-md"
+            >
+              {isSubmitting ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+
+          {/* Footer text */}
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <p className="text-xs text-on-surface-variant">
+              New to the sky?{" "}
+              <a
+                href="/signup"
+                className="text-primary font-semibold hover:underline"
+              >
+                Create an account
+              </a>
+            </p>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full absolute bottom-0 left-0 z-50">
+        <div className="flex flex-col md:flex-row justify-between items-center px-6 py-4 w-full gap-3">
+          <div className="text-xs font-medium text-on-surface-variant">
+            © 2024 SkySocial Celestial Ether
+          </div>
+          <div className="flex gap-4">
+            {["Privacy Policy", "Terms of Service", "Contact Support"].map(
+              (link) => (
+                <a
+                  key={link}
+                  href="#"
+                  className="text-xs font-medium text-on-surface-variant hover:text-primary transition-colors"
+                >
+                  {link}
+                </a>
+              ),
+            )}
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
