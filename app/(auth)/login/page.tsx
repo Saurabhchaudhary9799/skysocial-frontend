@@ -1,9 +1,12 @@
 "use client";
 
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import FormField from "@/components/ui/FormField";
+// import { cookies } from "next/headers";
+// import { redirect } from "next/navigation";
 
 const loginSchema = z.object({
   username: z
@@ -19,6 +22,14 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
+  // const cookieStore = await cookies();
+  // const session = cookieStore.get("session");
+
+  // if (session) {
+  //   redirect("/home");
+  // }
+  const router = useRouter();
+
   const initialFormData: LoginFormData = {
     username: "",
     password: "",
@@ -62,8 +73,9 @@ export default function Login() {
         },
       );
 
-      console.log("login success", response.data);
+      
       setFormData(initialFormData);
+      router.replace("/home");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setApiError(
@@ -87,7 +99,7 @@ export default function Login() {
       
       <main className="flex items-center justify-center w-full px-4 relative z-10 py-10">
         <div
-          className="w-full max-w-[520px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow"
+          className="w-full max-w-[400px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow"
         >
           {/* Logo */}
           <div className="flex flex-col items-center gap-2 mb-6">

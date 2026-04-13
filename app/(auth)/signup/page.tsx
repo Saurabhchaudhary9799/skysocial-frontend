@@ -67,7 +67,7 @@ export default function Signup() {
     setIsSubmitting(true);
     console.log("Submitting form with data:", result.data);
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/users/signup`,
         result.data,
         {
@@ -104,7 +104,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background selection:bg-primary-container selection:text-on-primary overflow-hidden relative font-manrope celestial-mesh">
       <main className="flex items-center justify-center w-full px-4 relative z-10 py-10">
-        <div className="w-full max-w-[520px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow">
+        <div className="w-full max-w-[400px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow">
           {/* Logo */}
           <div className="flex flex-col items-center gap-2 mb-6">
             <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container shadow-lg">
