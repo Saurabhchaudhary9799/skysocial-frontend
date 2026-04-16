@@ -9,6 +9,9 @@ type User = {
   bio?: string;
   profile_image?: string;
   cover_image?: string;
+  followers?: number;
+  followings?: number;
+  posts?: number;
 };
 
 type UserStore = {

@@ -14,6 +14,9 @@ export type CurrentUser = {
   profile_image: string | null;
   cover_image: string | null;
   bio: string;
+  followers?: number;
+  followings?: number;
+  posts?: number;
   raw: Record<string, unknown>;
 };
 
@@ -23,6 +26,10 @@ function getString(value: unknown) {
 
 function getOptionalString(value: unknown) {
   return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function getOptionalNumber(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
 }
 
 function normalizeUser(payload: unknown): CurrentUser | null {
@@ -49,6 +56,9 @@ function normalizeUser(payload: unknown): CurrentUser | null {
     profile_image: getOptionalString(raw.profile_image),
     cover_image: getOptionalString(raw.cover_image),
     bio: getString(raw.bio),
+    followers: getOptionalNumber(raw.followers),
+    followings: getOptionalNumber(raw.followings),
+    posts: getOptionalNumber(raw.posts),
     raw,
   };
 }
@@ -72,7 +82,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
       withCredentials: true,
     });
     
-    return normalizeUser(response?.data?.result?.user);
+    return normalizeUser(response?.data?.user);
   } catch {
     return null;
   }

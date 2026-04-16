@@ -24,11 +24,17 @@ const schema = z.object({
 
 type FormType = z.infer<typeof schema>;
 
-export default function EditProfilePage({ user }: Props) {
+export default function EditProfilePage() {
   const router = useRouter();
 
   // 🔥 Zustand
-  const setUser = useUserStore((state) => state.setUser);
+  const { user, setUser } = useUserStore();
+
+  if (!user) {
+    toast.error("User not found. Please log in again.");
+    router.push("/login");
+    return null;
+  }
 
   const {
     register,
@@ -90,16 +96,22 @@ export default function EditProfilePage({ user }: Props) {
         formData,
         { withCredentials: true },
       );
-      console.log(res.data.data);
+      // console.log(res.data.data);
       // 🔥 IMPORTANT: update global store
-      setUser(res.data.data);
+      console.log("Updated user data from API:", res.data.data); // Debug log
+      if (user) {
+        setUser({
+          ...user,
+          ...res.data.data, // only overrides updated fields
+        });
+      }
 
       toast.success("Profile updated successfully 🚀");
 
       // 🔥 go back to profile
       // router.back();
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       toast.error("Update failed ❌");
     }
   };

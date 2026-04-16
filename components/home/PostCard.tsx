@@ -1,49 +1,125 @@
+"use client";
 import { Bookmark, Ellipsis, Heart, MessageCircle, Share } from "lucide-react";
+import { useEffect, useState } from "react";
+import PostModal from "../profile/postModal";
+import axios from "axios";
+import { useUserStore } from "@/store/useUserStore";
+import {
+  addLikeIfMissing,
+  hasUserLiked,
+  removeUserLike,
+  type PostLike,
+} from "@/lib/post-likes";
 
-type PostCardProps = {
-  author: string;
-  handle: string;
-  time: string;
-  text: string;
-  likes: string;
-  comments: string;
-  shares: string;
-  imageVariant?: "leaf" | "palette";
+type PostUser = {
+  _id?: string;
+  id?: string;
+  name?: string;
+  username?: string;
+  profile_image?: string | null;
 };
 
-function LeafArtwork() {
-  return (
-    <div className="relative h-60 overflow-hidden rounded-[1.5rem] bg-[#1c1f19]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_40%)]" />
-      <div className="absolute left-1/2 top-8 h-36 w-24 -translate-x-[95%] rounded-t-full rounded-b-[2rem] bg-[#7ab78c]" />
-      <div className="absolute left-1/2 top-8 h-36 w-24 -translate-x-[5%] rounded-t-full rounded-b-[2rem] bg-[#a6deb4]" />
-      <div className="absolute left-1/2 top-16 h-32 w-20 -translate-x-[80%] rotate-[34deg] rounded-t-full rounded-b-[2rem] bg-[#436c4d]" />
-      <div className="absolute left-1/2 top-16 h-32 w-20 -translate-x-[20%] -rotate-[34deg] rounded-t-full rounded-b-[2rem] bg-[#5d9066]" />
-      <div className="absolute left-1/2 top-6 h-44 w-[2px] -translate-x-1/2 bg-[#6cb97b]" />
-      <div className="absolute bottom-0 left-1/2 h-14 w-1 -translate-x-1/2 rounded-full bg-[#6cb97b]" />
-    </div>
+type PostCommentUser = {
+  id?: string;
+  username?: string;
+  profile_image?: string | null;
+};
+
+type PostComment = {
+  _id: string;
+  text?: string;
+  createdAt?: string;
+  user?: PostCommentUser | null;
+};
+
+export type PostCardProps = {
+  _id: string;
+  bio: string;
+  image?: string | null;
+  createdAt: string;
+  user?: PostUser | null;
+  comments?: PostComment[];
+  likes?: PostLike[];
+};
+
+function formatTimeAgo(date: string) {
+  const now = new Date();
+  const past = new Date(date);
+  const diffInHours = Math.floor(
+    (now.getTime() - past.getTime()) / (1000 * 60 * 60),
   );
+
+  if (diffInHours < 1) return "Just now";
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  return `${Math.floor(diffInHours / 24)}d ago`;
 }
 
-function PaletteArtwork() {
-  return (
-    <div className="grid h-40 grid-cols-2 gap-4 rounded-[1.5rem] bg-surface-low/70 p-4">
-      <div className="rounded-[1.25rem] bg-gradient-to-br from-primary to-primary-container shadow-inner shadow-white/15" />
-      <div className="rounded-[1.25rem] bg-gradient-to-br from-[#d7d7ff] to-[#b7bbff] shadow-inner shadow-white/35" />
-    </div>
-  );
+function formatCount(value: number) {
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+  return String(value);
 }
 
 export default function PostCard({
-  author,
-  handle,
-  time,
-  text,
-  likes,
-  comments,
-  shares,
-  imageVariant,
+  _id,
+  bio,
+  image,
+  createdAt,
+  user,
+  comments = [],
+  likes = [],
 }: PostCardProps) {
+  const currentUser = useUserStore((state) => state.user);
+  const author = user?.name || user?.username || "Unknown";
+  const handle = `@${user?.username || "unknown"}`;
+  const time = formatTimeAgo(createdAt);
+  const commentCount = formatCount(comments.length);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [localLikes, setLocalLikes] = useState<PostLike[]>(likes);
+  const [isLiking, setIsLiking] = useState(false);
+
+  useEffect(() => {
+    setLocalLikes(likes);
+  }, [likes]);
+
+  const currentUserId = currentUser?._id;
+  const isLiked = hasUserLiked(localLikes, currentUserId);
+  const likeCount = formatCount(localLikes.length);
+
+  const handleLike = async () => {
+    if (!currentUserId || isLiking) {
+      return;
+    }
+
+    try {
+      setIsLiking(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/posts/${_id}/like`,
+        {},
+        {
+          withCredentials: true,
+        },
+      );
+
+      const message = response.data?.message;
+      const returnedLike = response.data?.like;
+
+      if (message === "Post liked") {
+        setLocalLikes((prevLikes) =>
+          addLikeIfMissing(prevLikes, currentUserId, returnedLike),
+        );
+      }
+
+      if (message === "Post unliked") {
+        setLocalLikes((prevLikes) => removeUserLike(prevLikes, currentUserId));
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
   return (
     <article className="home-panel bg-white rounded-4xl p-5 lg:p-6">
       <div className="flex items-start justify-between gap-3">
@@ -55,6 +131,7 @@ export default function PostCard({
               .join("")
               .slice(0, 2)}
           </div>
+
           <div>
             <p className="flex items-center gap-2 text-sm font-semibold text-on-surface">
               {author}
@@ -63,37 +140,60 @@ export default function PostCard({
               {handle} · {time}
             </p>
           </div>
-          
         </div>
+
         <div>
           <Ellipsis className="h-4 w-4 text-on-surface-variant" />
         </div>
       </div>
 
-      <p className="mt-4 text-sm leading-7 text-on-surface-variant">{text}</p>
+     
 
-      <div className="mt-4">
-        {imageVariant === "leaf" ? <LeafArtwork /> : null}
-        {imageVariant === "palette" ? <PaletteArtwork /> : null}
-      </div>
+      {image ? (
+        <div className="mt-4 overflow-hidden rounded-[1.5rem]">
+          <img src={image} alt="post" className="h-96 w-full object-cover" />
+        </div>
+      ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center gap-5 text-xs font-medium text-on-surface-variant">
+      <div className="mt-4 flex flex-wrap items-center gap-5 text-sm font-medium text-on-surface-variant">
         <div className="flex items-center gap-2">
-          <Heart className="h-4 w-4" />
-          <span>{likes}</span>
+          <Heart
+            className={`h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${
+              isLiked ? "fill-red-500 text-red-500" : ""
+            } ${isLiking ? "pointer-events-none opacity-70" : ""}`}
+            onClick={handleLike}
+          />
+          <span>{likeCount}</span>
         </div>
+
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => setIsModalOpen(true)}
+          role="button"
+          tabIndex={0}
+        >
+          <MessageCircle className="h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95" />
+          <span>{commentCount}</span>
+        </div>
+
         <div className="flex items-center gap-2">
-          <MessageCircle className="h-4 w-4" />
-          <span>{comments}</span>
+          <Share className="h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95" />
+          {/* <span>0</span> */}
         </div>
-        <div className="flex items-center gap-2">
-          <Share className="h-4 w-4" />
-          <span>{shares}</span>
-        </div>
+
         <button className="ml-auto text-on-surface-variant">
-          <Bookmark className="h-4 w-4" />
+          <Bookmark className="h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95" />
         </button>
       </div>
+      <p className="mt-4 text-sm leading-7 text-on-surface-variant">{bio}</p>
+      {isModalOpen && (
+        <PostModal
+          postId={_id}
+          initialLikes={localLikes}
+          onLikesChange={setLocalLikes}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </article>
   );
 }

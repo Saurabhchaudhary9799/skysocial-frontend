@@ -65,7 +65,7 @@ export default function Signup() {
     setErrors({});
     setApiError("");
     setIsSubmitting(true);
-    console.log("Submitting form with data:", result.data);
+  
     try {
       await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/users/signup`,
@@ -78,7 +78,7 @@ export default function Signup() {
         },
       );
 
-      // console.log("signup success", response.data);
+      
       setFormData(initialFormData);
       setErrors({});
       router.push("/login");
@@ -97,7 +97,7 @@ export default function Signup() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
-    // console.log(name, value);
+   
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 

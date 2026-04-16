@@ -28,7 +28,7 @@ async function getUser(userId: string) {
       },
       withCredentials: true,
     });
-    
+  
     return res.data.user;
   } catch (error) {
     return null;
@@ -59,7 +59,7 @@ export default async function Page({
       /> */}
       <ProfileClient user={user} />
 
-      <ProfileTabs />
+      <ProfileTabs userId={userId} />
     </section>
   );
 }

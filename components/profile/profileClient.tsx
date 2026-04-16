@@ -2,7 +2,7 @@
 
 import { useUserStore } from "@/store/useUserStore";
 import ProfileHeader from "./profileHeader";
-type Props = {  user: any;};
+type Props = { user: any };
 export default function ProfileClient({ user }: any) {
   const storeUser = useUserStore((s) => s.user);
 
@@ -15,9 +15,9 @@ export default function ProfileClient({ user }: any) {
       bio={finalUser.bio}
       profileImage={finalUser.profile_image}
       coverImage={finalUser.cover_image}
-      followers={finalUser.followersCount || 0}
-      following={finalUser.followingCount || 0}
-      posts={finalUser.postsCount || 0}
+      followers={finalUser.followers || 0}
+      following={finalUser.followings || 0}
+      posts={finalUser.posts || 0}
     />
   );
 }

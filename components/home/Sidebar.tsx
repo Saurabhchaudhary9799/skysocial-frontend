@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "../logo/logo";
 import { useUserStore } from "@/store/useUserStore";
+import { useState } from "react";
+import CreatePostModal from "../post/createPostModal";
 
 type SidebarProps = {
   items: Array<{
@@ -21,13 +23,14 @@ const iconMap = {
 };
 
 export default function Sidebar({ items }: SidebarProps) {
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // ✅ Zustand user
-  const user = useUserStore((state) => state.user);
-  console.log("Sidebar user:", user); // Debug log
 
-  // 🛑 Safety check (important)
+  const user = useUserStore((state) => state.user);
+  
+
+  
   if (!user) return null;
 
   const initials = user.name
@@ -39,7 +42,6 @@ export default function Sidebar({ items }: SidebarProps) {
 
   return (
     <aside className="flex h-full max-h-screen flex-col justify-between gap-8 overflow-hidden bg-white p-5 lg:sticky lg:top-0 lg:h-screen lg:p-6 rounded-r-4xl">
-      
       {/* Top */}
       <div className="space-y-8">
         <div className="flex items-center gap-3">
@@ -84,9 +86,11 @@ export default function Sidebar({ items }: SidebarProps) {
 
       {/* Bottom */}
       <div className="space-y-6">
-        
         {/* New Post */}
-        <button className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-container px-4 py-3 text-sm font-semibold text-on-primary shadow-[0_18px_36px_rgba(89,92,251,0.26)] transition hover:translate-y-[-1px]">
+        <button
+          onClick={() => setOpen(true)}
+          className="flex w-full items-center justify-center cursor-pointer gap-2 rounded-full bg-gradient-to-r from-primary to-primary-container px-4 py-3 text-sm font-semibold text-on-primary shadow-[0_18px_36px_rgba(89,92,251,0.26)] transition hover:translate-y-[-1px]"
+        >
           <Plus className="h-4 w-4" />
           New Post
         </button>
@@ -115,6 +119,7 @@ export default function Sidebar({ items }: SidebarProps) {
           </Link>
         </div>
       </div>
+      {open && <CreatePostModal onClose={() => setOpen(false)} />}
     </aside>
   );
 }
