@@ -10,6 +10,9 @@ import {
   removeUserLike,
   type PostLike,
 } from "@/lib/post-likes";
+import { getSavedPostByUser, hasAlreadySaved, SavedPost } from "@/lib/post-save";
+import { useSavedPostStore } from "@/store/useSavedPostStore";
+import { useFollowStore } from "@/store/useFollowStore";
 
 type PostUser = {
   _id?: string;
@@ -27,7 +30,7 @@ type PostCommentUser = {
 
 type PostComment = {
   _id: string;
-  text?: string;
+  message?: string;
   createdAt?: string;
   user?: PostCommentUser | null;
 };
@@ -41,6 +44,7 @@ export type PostCardProps = {
   comments?: PostComment[];
   likes?: PostLike[];
 };
+
 
 function formatTimeAgo(date: string) {
   const now = new Date();
@@ -69,22 +73,60 @@ export default function PostCard({
   likes = [],
 }: PostCardProps) {
   const currentUser = useUserStore((state) => state.user);
+  const setUser = useUserStore((state)=>state.setUser);
+  const { savedPosts, setSavedPosts, addSavedPost, removeSavedPost } =
+    useSavedPostStore();
+  const { isFollowing, followUser, unfollowUser, fetchFollowings } =
+    useFollowStore();
   const author = user?.name || user?.username || "Unknown";
   const handle = `@${user?.username || "unknown"}`;
   const time = formatTimeAgo(createdAt);
-  const commentCount = formatCount(comments.length);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [localLikes, setLocalLikes] = useState<PostLike[]>(likes);
+
+  const [localComments, setLocalComments] = useState<PostComment[]>(comments);
   const [isLiking, setIsLiking] = useState(false);
 
+  // console.log(user);
   useEffect(() => {
     setLocalLikes(likes);
   }, [likes]);
 
-  const currentUserId = currentUser?._id;
+  useEffect(() => {
+    setLocalComments(comments);
+  }, [comments]);
+
+  const currentUserId = currentUser?._id || (currentUser as any)?.id;
+  const authorId = user?._id;
+  const alreadyFollowing = authorId
+    ? isFollowing(authorId)
+    : false;
   const isLiked = hasUserLiked(localLikes, currentUserId);
+  const isSaved = hasAlreadySaved(savedPosts, _id);
   const likeCount = formatCount(localLikes.length);
+  const commentCount = formatCount(localComments.length);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    fetchFollowings(currentUserId);
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      return
+    }
+    const fetchSavedPosts = async () => {
+      const data = await getSavedPostByUser(currentUserId);
+      // console.log(data);
+      setSavedPosts(data || []);
+
+    }
+
+    fetchSavedPosts();
+  }, [currentUserId])
+
+  // console.log("savedPosts",savedPosts);
 
   const handleLike = async () => {
     if (!currentUserId || isLiking) {
@@ -120,6 +162,74 @@ export default function PostCard({
     }
   };
 
+  const handleBookmark = async () => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/posts/${_id}/save`, {}, { withCredentials: true })
+      console.log(response);
+      const message = response.data?.message;
+      const savedItem = response.data?.save;
+      if (message === "Post saved") {
+        addSavedPost({
+          _id: savedItem._id,
+          user: currentUserId,
+          post: {
+            _id: savedItem.post
+          },
+        });
+      }
+
+      if (message === "Post unsaved") {
+        removeSavedPost(_id);
+      }
+
+      // console.log("savedPosts",savedPosts);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleFollowUnfollow = async () => {
+    if (!authorId) return;
+  
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/${authorId}/follower`,
+        {},
+        { withCredentials: true }
+      );
+  // console.log("after follow",res.data)
+      const message = res.data?.message;
+  
+      if (message === "Followed successfully") {
+        followUser({
+          _id: authorId,
+          name: user?.name || "",
+          username: user?.username || "",
+          profile_image: user?.profile_image,
+        });
+        if (!currentUser) return;
+
+        setUser({
+          ...currentUser,
+          followings: (currentUser.followings || 0) + 1,
+        });
+      }
+  
+      if (message === "Unfollowed successfully") {
+        unfollowUser(authorId);
+
+        if (!currentUser) return;
+
+        setUser({
+          ...currentUser,
+          followings: (currentUser.followings || 0) - 1,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  // console.log(savedPosts);
   return (
     <article className="home-panel bg-white rounded-4xl p-5 lg:p-6">
       <div className="flex items-start justify-between gap-3">
@@ -142,12 +252,23 @@ export default function PostCard({
           </div>
         </div>
 
-        <div>
+        <div className="flex justify-center items-center gap-3">
+        {currentUser?._id !== authorId && (
+  <button
+    className={`rounded-full px-4 py-1 text-sm font-semibold transition cursor-pointer bg-gradient-to-r from-primary to-primary-container text-white
+     
+    `}
+    onClick={handleFollowUnfollow}
+  >
+    {alreadyFollowing ? "Following" : "Follow"}
+  </button>
+)}
+
           <Ellipsis className="h-4 w-4 text-on-surface-variant" />
         </div>
       </div>
 
-     
+
 
       {image ? (
         <div className="mt-4 overflow-hidden rounded-[1.5rem]">
@@ -158,9 +279,8 @@ export default function PostCard({
       <div className="mt-4 flex flex-wrap items-center gap-5 text-sm font-medium text-on-surface-variant">
         <div className="flex items-center gap-2">
           <Heart
-            className={`h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${
-              isLiked ? "fill-red-500 text-red-500" : ""
-            } ${isLiking ? "pointer-events-none opacity-70" : ""}`}
+            className={`h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${isLiked ? "fill-red-500 text-red-500" : ""
+              } ${isLiking ? "pointer-events-none opacity-70" : ""}`}
             onClick={handleLike}
           />
           <span>{likeCount}</span>
@@ -181,8 +301,11 @@ export default function PostCard({
           {/* <span>0</span> */}
         </div>
 
-        <button className="ml-auto text-on-surface-variant">
-          <Bookmark className="h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95" />
+        <button className="ml-auto text-on-surface-variant" onClick={handleBookmark}>
+          <Bookmark
+            className={`h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${isSaved ? "fill-black text-black" : ""
+              }`}
+          />
         </button>
       </div>
       <p className="mt-4 text-sm leading-7 text-on-surface-variant">{bio}</p>
@@ -190,7 +313,12 @@ export default function PostCard({
         <PostModal
           postId={_id}
           initialLikes={localLikes}
+
           onLikesChange={setLocalLikes}
+          onCommentsChange={(comments) => {
+            // update post card state here
+            setLocalComments(comments);
+          }}
           onClose={() => setIsModalOpen(false)}
         />
       )}

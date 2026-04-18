@@ -5,6 +5,8 @@ import axios from "axios";
 import { usePostStore } from "@/store/usePostStore";
 import PostModal from "@/components/profile/postModal"; 
 import type { PostLike } from "@/lib/post-likes";
+import { useSavedPostStore } from "@/store/useSavedPostStore";
+import { getSavedPostByUser } from "@/lib/post-save";
 
 type Props = {
   userId: string;
@@ -15,9 +17,25 @@ export default function ProfileTabs({ userId }: Props) {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null); // 👈 ADD
 
   const posts = usePostStore((state) => state.posts) || [];
+  
+  // const savedPosts = useSavedPostStore((state)=> state.savedPosts) || [];
   const setPosts = usePostStore((state) => state.setPosts);
   const isFetched = usePostStore((state) => state.isFetched);
   const updatePostLikes = usePostStore((state) => state.updatePostLikes);
+
+//   useEffect(() => {
+//     if (!userId) {
+//       return
+//     }
+//     const fetchSavedPosts = async () => {
+//       const data = await getSavedPostByUser(userId);
+//       setSavedPosts(data || []);
+// // console.log(data);
+      
+//     }
+
+//     fetchSavedPosts();
+//   }, [userId])
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -89,7 +107,7 @@ export default function ProfileTabs({ userId }: Props) {
           </div>
         )}
 
-        {active === "collections" && <p>Collections content</p>}
+        {active === "collections" && <p>collection</p>}
       </div>
 
       {/* ✅ MODAL */}

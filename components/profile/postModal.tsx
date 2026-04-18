@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import axios from "axios";
-import { Bookmark, Clock, Heart, MessageCircle } from "lucide-react";
+import { Bookmark, Clock, EllipsisVertical, Heart, MessageCircle } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import {
   addLikeIfMissing,
@@ -12,18 +12,26 @@ import {
   removeUserLike,
   type PostLike,
 } from "@/lib/post-likes";
+import { useSavedPostStore } from "@/store/useSavedPostStore";
+import { hasAlreadySaved, SavedPost } from "@/lib/post-save";
+import { toast } from "sonner";
+import { useFollowStore } from "@/store/useFollowStore";
 
 type Comment = {
   _id: string;
-  user?: { username: string; avatar?: string };
-  text: string;
+  user?: { username: string; profile_image?: string };
+  message?: string;
 };
 
 type Props = {
   postId: string;
+
   onClose: () => void;
   initialLikes?: PostLike[];
+
   onLikesChange?: (likes: PostLike[]) => void;
+
+  onCommentsChange?: (comments: Comment[]) => void;
 };
 
 function areLikesEqual(a: PostLike[], b: PostLike[]) {
@@ -45,22 +53,41 @@ function areLikesEqual(a: PostLike[], b: PostLike[]) {
   return true;
 }
 
+
 export default function PostModal({
   postId,
   onClose,
   initialLikes = [],
+
   onLikesChange,
+  onCommentsChange,
+
 }: Props) {
   const currentUser = useUserStore((state) => state.user);
+  const setUser = useUserStore((state)=>state.setUser);
+  const { savedPosts, setSavedPosts, addSavedPost, removeSavedPost } =
+    useSavedPostStore();
+  const { isFollowing, followUser, unfollowUser, fetchFollowings } =
+    useFollowStore();
   const [post, setPost] = useState<any>(null);
   const [comment, setComment] = useState("");
   const [mounted, setMounted] = useState(false);
   const [localLikes, setLocalLikes] = useState<PostLike[]>(initialLikes);
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
+  const [isPostLoading, setIsPostLoading] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
-
+  const [alreadyFollowing, setAlreadyFollowing] = useState(false);
+  const [isCommenting, setIsCommenting] = useState(false);
+  const isSaved = hasAlreadySaved(savedPosts, postId);
   useEffect(() => {
     setLocalLikes((prev) => (areLikesEqual(prev, initialLikes) ? prev : initialLikes));
   }, [initialLikes]);
+
+
+  useEffect(() => {
+    onCommentsChange?.(localComments);
+  }, [localComments, onCommentsChange]);
+
 
   useEffect(() => {
     if (!onLikesChange) return;
@@ -87,6 +114,7 @@ export default function PostModal({
   useEffect(() => {
     const fetchPost = async () => {
       try {
+        setIsPostLoading(true);
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}`,
           { withCredentials: true }
@@ -94,8 +122,13 @@ export default function PostModal({
         setPost(res.data.post);
         const nextLikes = res.data.post?.likes || [];
         setLocalLikes(nextLikes);
+        const nextComments = res.data.post?.comments || [];
+        setLocalComments(nextComments);
+        setAlreadyFollowing(isFollowing(res.data.post?.user?._id));
       } catch (err) {
         console.log("Failed to fetch post");
+      } finally {
+        setIsPostLoading(false);
       }
     };
 
@@ -120,6 +153,9 @@ export default function PostModal({
 
   const currentUserId = currentUser?._id;
   const isLiked = hasUserLiked(localLikes, currentUserId);
+  // const alreadyFollowing = isFollowing(post.user._id);
+
+  console.log(alreadyFollowing);
 
   const handleLike = async () => {
     if (!currentUserId || isLiking || !post) {
@@ -155,6 +191,136 @@ export default function PostModal({
     }
   };
 
+  const handleComment = async () => {
+    const trimmedComment = comment.trim();
+
+    if (!currentUserId || !post || isCommenting || !trimmedComment) {
+      return;
+    }
+
+    try {
+      setIsCommenting(true);
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`,
+        { message: trimmedComment },
+        { withCredentials: true }
+      );
+
+      const returnedComment =
+        response.data?.result?.comment ?? response.data?.comment;
+
+      const commentToAdd: Comment = returnedComment
+        ? {
+          ...returnedComment,
+          user: currentUser,
+        }
+        : {
+          _id: `temp-${Date.now()}`,
+          message: trimmedComment,
+          user: currentUser || undefined,
+        };
+
+      setLocalComments((prev) => [commentToAdd, ...prev]);
+      setComment("");
+    } catch (error) {
+      console.log("Failed to comment", error);
+    } finally {
+      setIsCommenting(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!currentUserId || !post) {
+      return;
+    }
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/save`, {}, { withCredentials: true })
+      // console.log(response);
+      const message = response.data?.message;
+      const savedItem = response.data?.save;
+      if (message === "Post saved") {
+        addSavedPost({
+          _id: savedItem._id,
+          user: currentUserId,
+          post: {
+            _id: savedItem.post
+          },
+        });
+      }
+
+      if (message === "Post unsaved") {
+        removeSavedPost(postId);
+      }
+
+      // console.log("savedPosts",savedPosts);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleCommentDelete = async (commentId: string) => {
+    try {
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments/${commentId}`, {
+        withCredentials: true
+      })
+
+      setLocalComments((prev) =>
+        prev.filter((comment) => comment._id !== commentId)
+      );
+
+      console.log("Comment deleted:", res.data);
+      toast.success("Comment deleted successfully");
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleFollowUnfollow = async () => {
+    const authorId = post?.user?._id;
+    if (!authorId) return;
+
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/${authorId}/follower`,
+        {},
+        { withCredentials: true }
+      );
+      // console.log("after follow",res.data)
+      const message = res.data?.message;
+
+      if (message === "Followed successfully") {
+        followUser({
+          _id: authorId,
+          name: post?.user?.name || "",
+          username: post?.user?.username || "",
+          profile_image: post?.user?.profile_image,
+        });
+        setAlreadyFollowing(true);
+        if (!currentUser) return;
+
+        setUser({
+          ...currentUser,
+          followings: (currentUser.followings || 0) + 1,
+        });
+      }
+
+      if (message === "Unfollowed successfully") {
+        unfollowUser(authorId);
+        setAlreadyFollowing(false);
+        if (!currentUser) return;
+
+        setUser({
+          ...currentUser,
+          followings: (currentUser.followings || 0) - 1,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // console.log("savedPost",savedPosts);
   // ❗ Prevent SSR crash
   if (!mounted) return null;
 
@@ -169,7 +335,7 @@ export default function PostModal({
       >
         {/* LEFT - IMAGE */}
         <div className="w-1/2 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
-          {!post ? (
+          {isPostLoading || !post ? (
             <div className="animate-pulse w-full h-[500px] bg-gray-300 rounded-2xl" />
           ) : (
             <div className="relative w-full h-[500px] flex items-center justify-center">
@@ -184,7 +350,7 @@ export default function PostModal({
 
         {/* RIGHT - DETAILS */}
         <div className="w-1/2 flex flex-col bg-white">
-          {!post ? (
+          {isPostLoading || !post ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
             </div>
@@ -212,9 +378,17 @@ export default function PostModal({
                     </p>
                   </div>
                 </div>
-                <button className="px-5 py-2 text-on-primary bg-gradient-to-br from-primary to-primary-container text-sm font-semibold rounded-full cursor-pointer">
-                  Follow
-                </button>
+
+                {currentUser?._id !== post?.user?._id && (
+                  <button
+                    className={`rounded-full px-4 py-1 text-sm font-semibold transition cursor-pointer bg-gradient-to-r from-primary to-primary-container text-white
+     
+    `}
+                    onClick={handleFollowUnfollow}
+                  >
+                    {alreadyFollowing ? "Following" : "Follow"}
+                  </button>
+                )}
               </div>
 
               {/* Caption */}
@@ -238,14 +412,14 @@ export default function PostModal({
 
               {/* Comments */}
               <div className="flex-1 overflow-y-auto p-5 space-y-5 max-h-[280px]">
-                {post.comments?.length ? (
-                  post.comments.map((comment: Comment) => (
+                {localComments?.length ? (
+                  localComments.map((comment: Comment) => (
                     <div key={comment._id} className="flex gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0 p-0.5">
                         <div className="w-full h-full rounded-full bg-white p-0.5">
-                          {comment.user?.avatar ? (
+                          {comment.user?.profile_image ? (
                             <img
-                              src={comment.user.avatar}
+                              src={comment.user.profile_image}
                               alt={comment.user.username}
                               className="w-full h-full rounded-full object-cover"
                             />
@@ -254,13 +428,19 @@ export default function PostModal({
                           )}
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900 text-sm">
-                          {comment.user?.username}
-                        </p>
-                        <p className="text-gray-600 text-sm mt-0.5">
-                          {comment.text}
-                        </p>
+                      <div className="flex-1 flex justify-between items-start bg-surface-container p-4 rounded-bl-4xl rounded-r-4xl">
+                        <div>
+                          <p className="font-medium text-sm">
+                            {comment.user?.username}
+                          </p>
+                          <p className="text-gray-600 text-xs mt-0.5 ">
+                            {comment.message || "No message"}
+                          </p>
+                        </div>
+                        <div className="cursor-pointer " onClick={() => handleCommentDelete(comment._id)}>
+                          <EllipsisVertical className="w-4 h-4" />
+                        </div>
+
                       </div>
                     </div>
                   ))
@@ -276,9 +456,8 @@ export default function PostModal({
                 <div className="flex flex-wrap items-center gap-5 text-xs font-medium text-on-surface-variant mb-4">
                   <div className="flex items-center gap-2">
                     <Heart
-                      className={`h-4 w-4 cursor-pointer ${
-                        isLiked ? "fill-red-500 text-red-500" : ""
-                      } ${isLiking ? "pointer-events-none opacity-70" : ""}`}
+                      className={`h-4 w-4 cursor-pointer ${isLiked ? "fill-red-500 text-red-500" : ""
+                        } ${isLiking ? "pointer-events-none opacity-70" : ""}`}
                       onClick={handleLike}
                     />
                     <span className="font-semibold text-gray-900">
@@ -288,7 +467,7 @@ export default function PostModal({
 
                   <div className="flex items-center gap-2">
                     <MessageCircle className="h-4 w-4" />
-                    <span>{post.comments?.length || 0}</span>
+                    <span>{localComments?.length || 0}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -297,7 +476,10 @@ export default function PostModal({
                   </div>
 
                   <button className="ml-auto text-on-surface-variant">
-                    <Bookmark className="w-4 h-4" />
+                    <Bookmark onClick={handleBookmark}
+                      className={`h-4 w-4 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${isSaved ? "fill-black text-black" : ""
+                        }`}
+                    />
                   </button>
                 </div>
 
@@ -311,14 +493,11 @@ export default function PostModal({
                     className="flex-1 bg-gray-100 rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-200"
                   />
                   <button
-                    className={`font-semibold text-sm ${
-                      comment.trim()
-                        ? "text-purple-500"
-                        : "text-purple-300 cursor-not-allowed"
-                    }`}
-                    disabled={!comment.trim()}
+                    className={`min-w-[68px] font-semibold text-sm cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${isCommenting ? "opacity-70 cursor-not-allowed" : ""}`}
+                    disabled={!comment.trim() || isCommenting || !post}
+                    onClick={handleComment}
                   >
-                    Post
+                    {isCommenting ? "Posting..." : "Post"}
                   </button>
                 </div>
               </div>
