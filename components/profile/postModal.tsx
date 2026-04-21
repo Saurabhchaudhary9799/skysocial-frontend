@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import axios from "axios";
-import { Bookmark, Clock, EllipsisVertical, Heart, MessageCircle } from "lucide-react";
+import {
+  Bookmark,
+  Clock,
+  EllipsisVertical,
+  Heart,
+  MessageCircle,
+} from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import {
   addLikeIfMissing,
@@ -16,6 +22,7 @@ import { useSavedPostStore } from "@/store/useSavedPostStore";
 import { hasAlreadySaved, SavedPost } from "@/lib/post-save";
 import { toast } from "sonner";
 import { useFollowStore } from "@/store/useFollowStore";
+import { socket } from "@/lib/socket";
 
 type Comment = {
   _id: string;
@@ -39,9 +46,7 @@ function areLikesEqual(a: PostLike[], b: PostLike[]) {
   if (a.length !== b.length) return false;
 
   const normalize = (likes: PostLike[]) =>
-    likes
-      .map((like) => `${like._id ?? ""}:${getLikeUserId(like.user)}`)
-      .sort();
+    likes.map((like) => `${like._id ?? ""}:${getLikeUserId(like.user)}`).sort();
 
   const aKeys = normalize(a);
   const bKeys = normalize(b);
@@ -53,7 +58,6 @@ function areLikesEqual(a: PostLike[], b: PostLike[]) {
   return true;
 }
 
-
 export default function PostModal({
   postId,
   onClose,
@@ -61,10 +65,9 @@ export default function PostModal({
 
   onLikesChange,
   onCommentsChange,
-
 }: Props) {
   const currentUser = useUserStore((state) => state.user);
-  const setUser = useUserStore((state)=>state.setUser);
+  const setUser = useUserStore((state) => state.setUser);
   const { savedPosts, setSavedPosts, addSavedPost, removeSavedPost } =
     useSavedPostStore();
   const { isFollowing, followUser, unfollowUser, fetchFollowings } =
@@ -80,14 +83,14 @@ export default function PostModal({
   const [isCommenting, setIsCommenting] = useState(false);
   const isSaved = hasAlreadySaved(savedPosts, postId);
   useEffect(() => {
-    setLocalLikes((prev) => (areLikesEqual(prev, initialLikes) ? prev : initialLikes));
+    setLocalLikes((prev) =>
+      areLikesEqual(prev, initialLikes) ? prev : initialLikes,
+    );
   }, [initialLikes]);
-
 
   useEffect(() => {
     onCommentsChange?.(localComments);
   }, [localComments, onCommentsChange]);
-
 
   useEffect(() => {
     if (!onLikesChange) return;
@@ -117,7 +120,7 @@ export default function PostModal({
         setIsPostLoading(true);
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         setPost(res.data.post);
         const nextLikes = res.data.post?.likes || [];
@@ -139,7 +142,7 @@ export default function PostModal({
     const now = new Date();
     const past = new Date(date);
     const diffInHours = Math.floor(
-      (now.getTime() - past.getTime()) / (1000 * 60 * 60)
+      (now.getTime() - past.getTime()) / (1000 * 60 * 60),
     );
     if (diffInHours < 1) return "Just now";
     if (diffInHours < 24) return `${diffInHours}h ago`;
@@ -184,6 +187,12 @@ export default function PostModal({
       if (message === "Post unliked") {
         setLocalLikes((prevLikes) => removeUserLike(prevLikes, currentUserId));
       }
+
+      socket.emit("likePost", {
+        userId: post?.user?._id,
+        username: currentUser?.username,
+        action: message,
+      });
     } catch (error) {
       console.log("Failed to toggle like", error);
     } finally {
@@ -204,7 +213,7 @@ export default function PostModal({
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`,
         { message: trimmedComment },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       const returnedComment =
@@ -212,16 +221,21 @@ export default function PostModal({
 
       const commentToAdd: Comment = returnedComment
         ? {
-          ...returnedComment,
-          user: currentUser,
-        }
+            ...returnedComment,
+            user: currentUser,
+          }
         : {
-          _id: `temp-${Date.now()}`,
-          message: trimmedComment,
-          user: currentUser || undefined,
-        };
+            _id: `temp-${Date.now()}`,
+            message: trimmedComment,
+            user: currentUser || undefined,
+          };
 
       setLocalComments((prev) => [commentToAdd, ...prev]);
+      socket.emit("commentOnPost", {
+        userId: post?.user?._id,
+        username: currentUser?.username,
+        message: trimmedComment,
+      });
       setComment("");
     } catch (error) {
       console.log("Failed to comment", error);
@@ -235,7 +249,11 @@ export default function PostModal({
       return;
     }
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/save`, {}, { withCredentials: true })
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/save`,
+        {},
+        { withCredentials: true },
+      );
       // console.log(response);
       const message = response.data?.message;
       const savedItem = response.data?.save;
@@ -244,7 +262,7 @@ export default function PostModal({
           _id: savedItem._id,
           user: currentUserId,
           post: {
-            _id: savedItem.post
+            _id: savedItem.post,
           },
         });
       }
@@ -261,20 +279,23 @@ export default function PostModal({
 
   const handleCommentDelete = async (commentId: string) => {
     try {
-      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments/${commentId}`, {
-        withCredentials: true
-      })
+      const res = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments/${commentId}`,
+        {
+          withCredentials: true,
+        },
+      );
 
       setLocalComments((prev) =>
-        prev.filter((comment) => comment._id !== commentId)
+        prev.filter((comment) => comment._id !== commentId),
       );
 
       console.log("Comment deleted:", res.data);
       toast.success("Comment deleted successfully");
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   const handleFollowUnfollow = async () => {
     const authorId = post?.user?._id;
@@ -284,7 +305,7 @@ export default function PostModal({
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/users/${authorId}/follower`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       // console.log("after follow",res.data)
       const message = res.data?.message;
@@ -315,6 +336,11 @@ export default function PostModal({
           followings: (currentUser.followings || 0) - 1,
         });
       }
+      socket.emit("followAndUnfollowUser", {
+        userId: post?.user?._id,
+        username: currentUser?.username,
+        action: message,
+      });
     } catch (err) {
       console.error(err);
     }
@@ -437,10 +463,12 @@ export default function PostModal({
                             {comment.message || "No message"}
                           </p>
                         </div>
-                        <div className="cursor-pointer " onClick={() => handleCommentDelete(comment._id)}>
+                        <div
+                          className="cursor-pointer "
+                          onClick={() => handleCommentDelete(comment._id)}
+                        >
                           <EllipsisVertical className="w-4 h-4" />
                         </div>
-
                       </div>
                     </div>
                   ))
@@ -456,8 +484,9 @@ export default function PostModal({
                 <div className="flex flex-wrap items-center gap-5 text-xs font-medium text-on-surface-variant mb-4">
                   <div className="flex items-center gap-2">
                     <Heart
-                      className={`h-4 w-4 cursor-pointer ${isLiked ? "fill-red-500 text-red-500" : ""
-                        } ${isLiking ? "pointer-events-none opacity-70" : ""}`}
+                      className={`h-4 w-4 cursor-pointer ${
+                        isLiked ? "fill-red-500 text-red-500" : ""
+                      } ${isLiking ? "pointer-events-none opacity-70" : ""}`}
                       onClick={handleLike}
                     />
                     <span className="font-semibold text-gray-900">
@@ -476,24 +505,34 @@ export default function PostModal({
                   </div>
 
                   <button className="ml-auto text-on-surface-variant">
-                    <Bookmark onClick={handleBookmark}
-                      className={`h-4 w-4 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${isSaved ? "fill-black text-black" : ""
-                        }`}
+                    <Bookmark
+                      onClick={handleBookmark}
+                      className={`h-4 w-4 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${
+                        isSaved ? "fill-black text-black" : ""
+                      }`}
                     />
                   </button>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400" />
+                  <div>
+                    {currentUser?.profile_image ? (
+                      <img
+                      className="w-10 h-10 rounded-full object-cover"
+                        src={currentUser.profile_image || "/default-avatar.png"} 
+                        alt="profile"/> ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-400" />
+                    )}  
+                  </div>
                   <input
                     type="text"
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Add a comment..."
-                    className="flex-1 bg-gray-100 rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-200"
+                    className="flex-1 bg-gray-100 rounded-full px-5 py-3 text-sm outline-none focus:ring-1 focus:ring-primary transition"
                   />
                   <button
-                    className={`min-w-[68px] font-semibold text-sm cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${isCommenting ? "opacity-70 cursor-not-allowed" : ""}`}
+                    className={`min-w-[68px] font-semibold text-sm cursor-pointer transition-transform duration-200 ease-out hover:underline ${isCommenting ? "opacity-70 cursor-not-allowed" : ""}`}
                     disabled={!comment.trim() || isCommenting || !post}
                     onClick={handleComment}
                   >
@@ -506,6 +545,6 @@ export default function PostModal({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

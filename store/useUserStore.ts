@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-type User = {
+export type User = {
   _id: string;
   name: string;
   username: string;

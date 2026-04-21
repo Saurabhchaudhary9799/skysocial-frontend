@@ -63,7 +63,7 @@ export const useFollowStore = create<FollowStore>((set, get) => ({
         { withCredentials: true }
       );
 
-      console.log(res.data);
+      // console.log(res.data);
 
       const followings: Following[] = res.data.result || [];
 

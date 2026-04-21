@@ -1,12 +1,34 @@
-export default function Page() {
+"use client";
+
+import ChatArea from "@/components/chat-page/chat-area";
+import FriendsSidebar from "@/components/chat-page/friends-sidebar";
+import { socket } from "@/lib/socket";
+import { useUserStore } from "@/store/useUserStore";
+import { useEffect } from "react";
+
+export default function ChatPage() {
+  const user = useUserStore((s) => s.user);
+
+  // useEffect(() => {
+  //   if (!user?._id) return;
+
+  //   socket.connect();
+  //   socket.emit("user-joined", user._id);
+
+  //   return () => {
+  //     socket.disconnect();
+  //   };
+  // }, [user?._id]);
+
   return (
-    <section className="space-y-4 py-4">
-      <div className="home-panel p-6">
-        <h1 className="text-2xl font-bold text-on-surface">Messages</h1>
-        <p className="mt-2 text-sm text-on-surface-variant">
-          Your messages page will render here.
-        </p>
+    <div className="grid grid-cols-[300px_1fr] h-[calc(100vh-64px)] px-2 py-4 gap-4 lg:max-w-[1440px] mx-auto">
+      <div className="overflow-hidden">
+        <FriendsSidebar />
       </div>
-    </section>
+
+      <div className="overflow-hidden">
+        <ChatArea />
+      </div>
+    </div>
   );
 }

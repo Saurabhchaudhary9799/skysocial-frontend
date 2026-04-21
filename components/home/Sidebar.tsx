@@ -1,18 +1,19 @@
 "use client";
 
-import { House, MessageSquareText, Plus, UserRound } from "lucide-react";
+import { Bell, House, MessageSquareText, Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "../logo/logo";
 import { useUserStore } from "@/store/useUserStore";
 import { useState } from "react";
 import CreatePostModal from "../post/createPostModal";
+import SidebarSkeleton from "../skeleton/sidebarSkeleton";
 
 type SidebarProps = {
   items: Array<{
     label: string;
     href: string;
-    icon: "home" | "messages" | "profile";
+    icon: "home" | "messages" | "profile" ;
   }>;
 };
 
@@ -20,6 +21,7 @@ const iconMap = {
   home: House,
   messages: MessageSquareText,
   profile: UserRound,
+  // notification: Bell,
 };
 
 export default function Sidebar({ items }: SidebarProps) {
@@ -31,7 +33,9 @@ export default function Sidebar({ items }: SidebarProps) {
   
 
   
-  if (!user) return null;
+  if (!user) {
+  return <SidebarSkeleton/>;
+}
 
   const initials = user.name
     .split(" ")

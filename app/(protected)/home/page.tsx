@@ -1,47 +1,9 @@
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+import PostListSkeleton from "@/components/skeleton/postListSkeleton";
 
-import FeedComposer from "@/components/home/FeedComposer";
-import PostCard from "@/components/home/PostCard";
-import RightRail from "@/components/home/RightRail";
-import axios from "axios";
-import { cookies } from "next/headers";
-async function getHomeFeed() {
-  const cookieStore = await cookies();
-  const jwt = cookieStore.get("jwt")?.value;
-  const apiBaseUrl =
-    process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:8000/api/v1";
-  if (!jwt || !apiBaseUrl) {
-    return [];
-  }
-  try {
-    const res = await axios.get(`${apiBaseUrl}/posts/home-feed`, {
-      headers: {
-        Accept: "application/json",
-        Cookie: cookieStore.toString(),
-      },
-      withCredentials: true,
-    });
-    
-    return res.data?.result?.posts ?? [];
-  } catch {
-    return [];
-  }
-}
-function formatTimeAgo(date: string) {
-  const now = new Date();
-  const past = new Date(date);
-  const diffInHours = Math.floor(
-    (now.getTime() - past.getTime()) / (1000 * 60 * 60),
-  );
-  if (diffInHours < 1) return "Just now";
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  return `${Math.floor(diffInHours / 24)}d ago`;
-}
-function formatCount(value: number) {
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
-  return String(value);
-}
-
-
+const PostList = dynamic(() => import("@/components/home/postList"));
+const RightRail = dynamic(() => import("@/components/home/RightRail"));
 
 const trends = [
   {
@@ -74,32 +36,24 @@ const suggestions = [
   },
 ];
 
-export default async function Home() {
-  const posts = await getHomeFeed();
-//  console.log(feed);
-//   const posts = feed.map((post: any) => ({
-//     author: post.user?.name || post.user?.username || "Unknown",
-//     handle: `@${post.user?.username || "unknown"}`,
-//     time: formatTimeAgo(post.createdAt),
-//     text: post.bio || "",
-//     likes: formatCount(post.likes?.length || 0),
-//     comments: formatCount(post.comments?.length || 0),
-//     shares: "0",
-//   }));
-  // console.log("posts",posts);
+
+
+export default function Home() {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
-      <section className="space-y-5 lg:py-4">
-        {/* <FeedComposer /> */}
-        <div className="space-y-5">
-          {posts.map((post: any, index: number) => (
-            <PostCard key={index} {...post} />
-          ))}
-        </div>
+    <div className="grid gap-y-2 gap-x-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:max-w-[1440px] mx-auto px-2 py-4">
+      
+      {/* Feed */}
+      <section className="space-y-5 min-h-[60vh]">
+        <Suspense fallback={<PostListSkeleton />}>
+          <PostList />
+        </Suspense>
       </section>
-      <div className="lg:p-4">
+
+      {/* Right Rail */}
+      <aside className="hidden lg:block sticky top-20 self-start">
         <RightRail trends={trends} suggestions={suggestions} />
-      </div>
+      </aside>
+
     </div>
   );
 }

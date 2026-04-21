@@ -16,6 +16,7 @@ type PostStore = {
   isFetched: boolean;
   setPosts: (posts: Post[]) => void;
   addPost: (post: Post) => void;
+  deletePost: (postId: string) => void;
   updatePostLikes: (postId: string, likes: PostLike[]) => void;
 };
 
@@ -32,6 +33,11 @@ export const usePostStore = create<PostStore>()((set) => ({
   addPost: (post: Post) =>
     set((state: PostStore) => ({
       posts: [post, ...state.posts],
+    })),
+
+  deletePost: (postId: string) =>
+    set((state) => ({
+      posts: state.posts.filter((post) => post._id !== postId),
     })),
 
   updatePostLikes: (postId, likes) =>
