@@ -46,7 +46,7 @@ export default async function Page({
   if (!user) return <p>User not found</p>;
 
   return (
-    <section className="space-y-6 p-4 lg:p-5">
+    <section className="space-y-6 px-2 py-4 ">
       {/* <ProfileHeader
         name={user.name}
         username={user.username}

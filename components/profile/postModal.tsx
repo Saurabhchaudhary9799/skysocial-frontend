@@ -9,6 +9,7 @@ import {
   EllipsisVertical,
   Heart,
   MessageCircle,
+  X,
 } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import {
@@ -352,19 +353,43 @@ export default function PostModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white w-[95%] max-w-5xl rounded-3xl overflow-hidden flex shadow-2xl"
+        className="
+      bg-white 
+      w-full 
+      h-full 
+      sm:h-auto 
+      sm:max-h-[90vh]
+      sm:max-w-2xl 
+      md:max-w-4xl 
+      lg:max-w-5xl 
+      rounded-none sm:rounded-3xl 
+      overflow-hidden 
+      flex flex-col md:flex-row 
+      shadow-2xl relative
+      transition-transform 
+      transform 
+      scale-100
+      "
+    
         onClick={(e) => e.stopPropagation()}
       >
+
+         <button
+    onClick={onClose}
+    className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/60 text-white backdrop-blur sm:hidden"
+  >
+    <X size={18} />
+  </button>
         {/* LEFT - IMAGE */}
-        <div className="w-1/2 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
+        <div className="w-full md:w-1/2 h-[40vh] sm:h-[45vh] md:h-auto bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-3 sm:p-6 md:p-8">
           {isPostLoading || !post ? (
-            <div className="animate-pulse w-full h-[500px] bg-gray-300 rounded-2xl" />
+            <div className="animate-pulse w-full h-full bg-gray-300 rounded-2xl" />
           ) : (
-            <div className="relative w-full h-[500px] flex items-center justify-center">
+            <div className="relative w-full h-full flex items-center justify-center">
               <img
                 src={post.image}
                 alt="post"
@@ -375,7 +400,7 @@ export default function PostModal({
         </div>
 
         {/* RIGHT - DETAILS */}
-        <div className="w-1/2 flex flex-col bg-white">
+        <div className="w-full md:w-1/2 flex flex-col bg-white min-h-0">
           {isPostLoading || !post ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
@@ -383,9 +408,9 @@ export default function PostModal({
           ) : (
             <>
               {/* Header */}
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <div className="flex items-center justify-between p-3 sm:p-4 md:p-5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5">
                     <div className="w-full h-full rounded-full bg-white p-0.5">
                       {post.user?.profile_image ? (
                         <img
@@ -398,18 +423,14 @@ export default function PostModal({
                       )}
                     </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {post.user?.username}
-                    </p>
-                  </div>
+                  <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                    {post.user?.username}
+                  </p>
                 </div>
 
                 {currentUser?._id !== post?.user?._id && (
                   <button
-                    className={`rounded-full px-4 py-1 text-sm font-semibold transition cursor-pointer bg-gradient-to-r from-primary to-primary-container text-white
-     
-    `}
+                    className="rounded-full px-3 sm:px-4 py-1 text-xs sm:text-sm font-semibold transition cursor-pointer bg-gradient-to-r from-primary to-primary-container text-white"
                     onClick={handleFollowUnfollow}
                   >
                     {alreadyFollowing ? "Following" : "Follow"}
@@ -418,8 +439,8 @@ export default function PostModal({
               </div>
 
               {/* Caption */}
-              <div className="p-5 border-b border-gray-100">
-                <p className="text-gray-800 leading-relaxed">
+              <div className="p-3 sm:p-4 md:p-5 border-b border-gray-100">
+                <p className="text-gray-800 text-sm sm:text-base leading-relaxed">
                   {post.bio}
                   {post.tags?.length > 0 && (
                     <span className="ml-2">
@@ -437,11 +458,11 @@ export default function PostModal({
               </div>
 
               {/* Comments */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-5 max-h-[280px]">
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-4 sm:space-y-5">
                 {localComments?.length ? (
                   localComments.map((comment: Comment) => (
                     <div key={comment._id} className="flex gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0 p-0.5">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0 p-0.5">
                         <div className="w-full h-full rounded-full bg-white p-0.5">
                           {comment.user?.profile_image ? (
                             <img
@@ -454,17 +475,19 @@ export default function PostModal({
                           )}
                         </div>
                       </div>
-                      <div className="flex-1 flex justify-between items-start bg-surface-container p-4 rounded-bl-4xl rounded-r-4xl">
+
+                      <div className="flex-1 flex justify-between items-start bg-surface-container p-3 sm:p-4 rounded-bl-4xl rounded-r-4xl">
                         <div>
-                          <p className="font-medium text-sm">
+                          <p className="font-medium text-xs sm:text-sm">
                             {comment.user?.username}
                           </p>
-                          <p className="text-gray-600 text-xs mt-0.5 ">
+                          <p className="text-gray-600 text-xs mt-0.5">
                             {comment.message || "No message"}
                           </p>
                         </div>
+
                         <div
-                          className="cursor-pointer "
+                          className="cursor-pointer"
                           onClick={() => handleCommentDelete(comment._id)}
                         >
                           <EllipsisVertical className="w-4 h-4" />
@@ -480,8 +503,9 @@ export default function PostModal({
               </div>
 
               {/* Footer */}
-              <div className="border-t border-gray-100 p-5">
-                <div className="flex flex-wrap items-center gap-5 text-xs font-medium text-on-surface-variant mb-4">
+              <div className="border-t border-gray-100 p-3 sm:p-4 md:p-5">
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-5 text-xs font-medium text-on-surface-variant mb-3 sm:mb-4">
                   <div className="flex items-center gap-2">
                     <Heart
                       className={`h-4 w-4 cursor-pointer ${
@@ -514,25 +538,32 @@ export default function PostModal({
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3">
+                {/* Input */}
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div>
                     {currentUser?.profile_image ? (
                       <img
-                      className="w-10 h-10 rounded-full object-cover"
-                        src={currentUser.profile_image || "/default-avatar.png"} 
-                        alt="profile"/> ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-400" />
-                    )}  
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                        src={currentUser.profile_image || "/default-avatar.png"}
+                        alt="profile"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-400" />
+                    )}
                   </div>
+
                   <input
                     type="text"
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Add a comment..."
-                    className="flex-1 bg-gray-100 rounded-full px-5 py-3 text-sm outline-none focus:ring-1 focus:ring-primary transition"
+                    className="flex-1 min-w-0 bg-gray-100 rounded-full px-4 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm outline-none focus:ring-1 focus:ring-primary transition"
                   />
+
                   <button
-                    className={`min-w-[68px] font-semibold text-sm cursor-pointer transition-transform duration-200 ease-out hover:underline ${isCommenting ? "opacity-70 cursor-not-allowed" : ""}`}
+                    className={`min-w-[60px] sm:min-w-[68px] font-semibold text-xs sm:text-sm cursor-pointer transition hover:underline ${
+                      isCommenting ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
                     disabled={!comment.trim() || isCommenting || !post}
                     onClick={handleComment}
                   >

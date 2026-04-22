@@ -28,7 +28,7 @@ export default async function ProtectedLayout({
         <div className="mx-auto grid max-w-[1440px] gap-2 lg:grid-cols-[260px_minmax(0,1fr)] ">
           
           {/* Sidebar */}
-          <aside className="sticky top-0 h-screen">
+          <aside className="hidden lg:block sticky top-0 h-screen">
             <Sidebar items={navItems} />
           </aside>
 

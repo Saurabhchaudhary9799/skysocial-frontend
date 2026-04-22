@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { Bell } from "lucide-react";
+import { Bell, MessageCircle } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useState } from "react";
 import NotificationModal from "./notificationModal";
 import ProfileModal from "./profileModal";
+import Link from "next/link";
+import Logo from "../logo/logo";
 
 export default function Header() {
   const currentUser = useUserStore((state) => state.user);
@@ -26,10 +28,35 @@ export default function Header() {
     .slice(0, 2);
 
   return (
-    <header className="w-full h-16 px-6 flex items-center justify-end  bg-white sticky top-0 z-10 rounded-b-4xl shadow-sm">
-      <div className="flex items-center gap-4">
+    <header className="w-full h-16 px-6 flex items-center justify-between lg:justify-end  bg-white sticky top-0 z-10 rounded-b-4xl shadow-sm">
+      <div className="flex items-center gap-2 sm:gap-3 lg:hidden">
+        <Logo />
+
+        <div className="leading-tight">
+          <Link href="/home">
+            <p className="text-base sm:text-lg font-extrabold tracking-tight text-on-surface">
+              SkySocial
+            </p>
+          </Link>
+
+          <p className="text-[9px] sm:text-[10px] md:text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em] text-on-surface-variant/70">
+            Celestial Ether
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center  gap-2 md:gap-4">
+        <Link
+          href="/messages"
+          className="p-2 rounded-full hover:bg-surface-active transition"
+        >
+          <MessageCircle className="h-5 w-5 cursor-pointer hover:text-gray-600 transition" />
+        </Link>
+
         <button
-          onClick={() => {setOpen((prev) => !prev); setOpenProfile(false)}}
+          onClick={() => {
+            setOpen((prev) => !prev);
+            setOpenProfile(false);
+          }}
           className="relative p-2 rounded-full hover:bg-surface-active transition cursor-pointer"
         >
           <Bell className="h-5 w-5" />
@@ -44,7 +71,10 @@ export default function Header() {
         {/* 👤 Avatar */}
         <div
           className="relative h-10 w-10 rounded-full overflow-hidden bg-gradient-to-br from-[#171717] to-[#6f6f6f] flex items-center justify-center text-xs font-bold text-white cursor-pointer"
-          onClick={() => {setOpenProfile((prev) => !prev); setOpen(false)}}
+          onClick={() => {
+            setOpenProfile((prev) => !prev);
+            setOpen(false);
+          }}
         >
           {currentUser?.profile_image ? (
             <Image

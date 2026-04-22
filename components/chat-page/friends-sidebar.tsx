@@ -170,7 +170,7 @@ const FriendsSidebar = () => {
                 className={`flex items-start justify-between p-3 mb-2 gap-2 rounded-2xl cursor-pointer ${
                   activeChat?._id === c.userId
                     ? "bg-primary text-white"
-                    : "hover:bg-gray-200"
+                    : "hover:bg-gray-200 text-gray-800"
                 }`}
               >
                 <div className="flex items-start  gap-3 min-w-0 ">

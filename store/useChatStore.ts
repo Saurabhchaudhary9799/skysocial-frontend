@@ -28,7 +28,7 @@ type ChatStore = {
   messages: Message[];
   conversations: Conversation[];
 
-  setActiveChat: (user: ChatUser) => void;
+  setActiveChat: (user: ChatUser | null) => void;
  setMessages: (
   msgs: Message[] | ((prev: Message[]) => Message[])
 ) => void;

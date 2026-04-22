@@ -119,37 +119,44 @@ export default function EditProfilePage() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="max-w-4xl mx-auto p-4 space-y-6"
+      className=" mx-auto px-2 py-4 space-y-6"
     >
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white rounded-3xl px-4 py-3 shadow-md gap-3">
+        {/* Left Section */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => router.back()}
-            className="p-2 rounded-full cursor-pointer bg-surface-container"
+            className="p-2 rounded-full cursor-pointer bg-surface-container shrink-0"
           >
             <ArrowLeft size={20} />
           </button>
 
-          <div>
-            <h1 className="text-xl font-bold text-on-surface">Edit Profile</h1>
-            <p className="text-sm text-on-surface-variant">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-on-surface truncate">
+              Edit Profile
+            </h1>
+            <p className="text-xs sm:text-sm text-on-surface-variant truncate">
               Customize how you appear
             </p>
           </div>
         </div>
 
-        {/* ✅ Button with spinner */}
+        {/* Right Section (Button) */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`px-4 py-2 rounded-full flex items-center gap-2 text-sm shadow-md transition
-          ${
-            isSubmitting
-              ? "bg-gradient-to-br from-primary to-primary-container text-on-primary cursor-not-allowed"
-              : "bg-gradient-to-br from-primary to-primary-container text-on-primary hover:-translate-y-0.5"
-          }`}
+          className={`
+      w-full sm:w-auto
+      justify-center
+      px-4 py-2 rounded-full flex items-center gap-2 text-sm shadow-md transition
+      ${
+        isSubmitting
+          ? "bg-gradient-to-br from-primary to-primary-container text-on-primary cursor-not-allowed"
+          : "bg-gradient-to-br from-primary to-primary-container text-on-primary hover:-translate-y-0.5"
+      }
+    `}
         >
           {isSubmitting ? (
             <>
@@ -166,7 +173,7 @@ export default function EditProfilePage() {
       <SectionCard title="Visual Identity">
         <div className="relative">
           {/* Cover */}
-          <div className="h-40 rounded-xl overflow-hidden relative">
+          <div className="h-40 rounded-4xl overflow-hidden relative">
             <img
               src={
                 coverPreview ||

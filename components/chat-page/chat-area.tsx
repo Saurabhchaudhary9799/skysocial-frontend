@@ -1,6 +1,6 @@
 "use client";
 
-import { SendHorizonal, Smile } from "lucide-react";
+import { ArrowLeft, SendHorizonal, Smile } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
 import { useUserStore } from "@/store/useUserStore";
 import { socket } from "@/lib/socket";
@@ -32,7 +32,7 @@ function MessageBubble({ message, isOwn, status }: any) {
 }
 
 export default function ChatArea() {
-  const { activeChat, messages, setMessages, addMessage } = useChatStore();
+  const { activeChat, setActiveChat, messages, setMessages, addMessage } = useChatStore();
   const currentUser = useUserStore((s) => s.user);
   const { updateConversation } = useChatStore();
 
@@ -235,9 +235,12 @@ export default function ChatArea() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white  rounded-4xl">
+    <div className="flex flex-col h-full bg-white   rounded-4xl ">
       {/* Header */}
       <div className="flex items-center gap-3 p-3 border-b border-gray-100">
+        <button onClick={() => setActiveChat(null)} className="cursor-pointer p-2 rounded-full hover:bg-surface-active transition ">
+          <ArrowLeft size={20} />
+        </button>
         <img
           src={activeChat.profile_image || "/default-avatar.png"}
           className="h-10 w-10 rounded-full"
@@ -249,7 +252,7 @@ export default function ChatArea() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1  overflow-y-auto p-4">
         {messages.map((msg, i) => {
           const isOwn = msg.sender === currentUser?._id;
 
@@ -268,7 +271,7 @@ export default function ChatArea() {
               {showDate && (
                 <div className="flex justify-center my-2">
                   <span className="text-xs bg-gray-200 px-3 py-1 rounded-full">
-                   {formatDateLabel(msg.createdAt || "")}
+                    {formatDateLabel(msg.createdAt || "")}
                   </span>
                 </div>
               )}
