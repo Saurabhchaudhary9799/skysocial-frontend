@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { requireCurrentUser } from "@/lib/auth";
 import Sidebar from "@/components/home/Sidebar";
 import UserHydrator from "@/components/providers/UserHydrator";

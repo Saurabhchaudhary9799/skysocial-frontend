@@ -5,6 +5,8 @@ import PostListSkeleton from "@/components/skeleton/postListSkeleton";
 const PostList = dynamic(() => import("@/components/home/postList"));
 const RightRail = dynamic(() => import("@/components/home/RightRail"));
 
+
+
 const trends = [
   {
     label: "Trending in Ether",
