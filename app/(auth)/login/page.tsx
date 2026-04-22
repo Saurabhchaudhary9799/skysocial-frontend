@@ -63,7 +63,7 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/users/login`,
         { ...result.data },
         {

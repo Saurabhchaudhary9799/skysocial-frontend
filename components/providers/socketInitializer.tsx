@@ -23,7 +23,7 @@ export default function SocketInitializer() {
   return () => {
     socket.off("receiveNotification");
   };
-}, []);
+}, [addNotification]);
 
 
   useEffect(() => {

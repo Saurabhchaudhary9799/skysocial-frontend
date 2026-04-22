@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { usePostStore } from "@/store/usePostStore";
-import PostModal from "@/components/profile/postModal"; 
+import PostModal from "@/components/profile/postModal";
 import type { PostLike } from "@/lib/post-likes";
-import { useSavedPostStore } from "@/store/useSavedPostStore";
-import { getSavedPostByUser } from "@/lib/post-save";
+import Image from "next/image";
+import { PostCardProps } from "@/lib/types";
 
 type Props = {
   userId: string;
@@ -17,36 +17,36 @@ export default function ProfileTabs({ userId }: Props) {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null); // 👈 ADD
 
   const posts = usePostStore((state) => state.posts) || [];
-  
-  // const savedPosts = useSavedPostStore((state)=> state.savedPosts) || [];
+
   const setPosts = usePostStore((state) => state.setPosts);
-  const isFetched = usePostStore((state) => state.isFetched);
+
   const updatePostLikes = usePostStore((state) => state.updatePostLikes);
 
-//   useEffect(() => {
-//     if (!userId) {
-//       return
-//     }
-//     const fetchSavedPosts = async () => {
-//       const data = await getSavedPostByUser(userId);
-//       setSavedPosts(data || []);
-// // console.log(data);
-      
-//     }
+  //   useEffect(() => {
+  //     if (!userId) {
+  //       return
+  //     }
+  //     const fetchSavedPosts = async () => {
+  //       const data = await getSavedPostByUser(userId);
+  //       setSavedPosts(data || []);
+  // // console.log(data);
 
-//     fetchSavedPosts();
-//   }, [userId])
+  //     }
+
+  //     fetchSavedPosts();
+  //   }, [userId])
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/posts/user/${userId}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         setPosts(res.data.result.posts);
       } catch (error) {
+        console.error("Error fetching posts:", error);
         console.log("Failed to fetch posts");
       }
     };
@@ -54,7 +54,7 @@ export default function ProfileTabs({ userId }: Props) {
     if (active === "posts" && userId) {
       fetchPosts();
     }
-  }, [active, userId]);
+  }, [active, userId, setPosts]);
 
   const tabs = ["posts", "collections"];
 
@@ -90,10 +90,12 @@ export default function ProfileTabs({ userId }: Props) {
                     className="relative w-full aspect-square rounded-4xl overflow-hidden cursor-pointer group"
                   >
                     {post.image ? (
-                      <img
+                      <Image
                         src={post.image}
                         alt="post"
                         className="w-full h-full object-cover rounded-4xl  transition duration-300 group-hover:scale-105"
+                        width={400}
+                        height={400}
                       />
                     ) : (
                       <div className="bg-gray-200 w-full h-full" />
@@ -115,7 +117,7 @@ export default function ProfileTabs({ userId }: Props) {
         <PostModal
           postId={selectedPostId}
           initialLikes={
-            ((posts as any[]).find((p) => p._id === selectedPostId) as any)
+            (posts as PostCardProps[]).find((p) => p._id === selectedPostId)
               ?.likes ?? []
           }
           onLikesChange={(likes: PostLike[]) => {

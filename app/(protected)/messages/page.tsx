@@ -3,24 +3,11 @@
 
 import ChatArea from "@/components/chat-page/chat-area";
 import FriendsSidebar from "@/components/chat-page/friends-sidebar";
-import { socket } from "@/lib/socket";
 import { useChatStore } from "@/store/useChatStore";
-import { useUserStore } from "@/store/useUserStore";
-import { useEffect } from "react";
 
 export default function ChatPage() {
-  const user = useUserStore((s) => s.user);
   const { activeChat } = useChatStore();
-  // useEffect(() => {
-  //   if (!user?._id) return;
-
-  //   socket.connect();
-  //   socket.emit("user-joined", user._id);
-
-  //   return () => {
-  //     socket.disconnect();
-  //   };
-  // }, [user?._id]);
+ 
 
   return (
    <div

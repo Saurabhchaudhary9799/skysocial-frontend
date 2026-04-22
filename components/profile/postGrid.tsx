@@ -1,5 +1,8 @@
+import { PostCardProps } from "@/lib/types";
+import Image from "next/image";
+
 type Props = {
-  posts: any[];
+  posts: PostCardProps[];
   onClickPost: (id: string) => void;
 };
 
@@ -17,9 +20,11 @@ export default function PostGrid({ posts, onClickPost }: Props) {
           className="relative w-full aspect-square overflow-hidden cursor-pointer group"
         >
           {post.image ? (
-            <img
+            <Image
               src={post.image}
               alt="post"
+              width={400}
+              height={400}
               className="w-full h-full object-cover rounded-2xl transition group-hover:scale-105"
             />
           ) : (

@@ -25,6 +25,7 @@ export type PostCardProps = {
   _id: string;
   bio: string;
   image?: string | null;
+  tags:string[];
   createdAt: string;
   user?: PostUser | null;
   comments?: PostComment[];

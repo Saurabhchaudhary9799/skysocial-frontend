@@ -1,14 +1,9 @@
 import ProfileClient from "@/components/profile/profileClient";
-import ProfileHeader from "@/components/profile/profileHeader";
 import ProfileTabs from "@/components/profile/profileTabs";
 import axios from "axios";
 import { cookies } from "next/headers";
 
-type PageProps = {
-  params: {
-    userId: string;
-  };
-};
+
 
 async function getUser(userId: string) {
   const cookieStore = await cookies();
@@ -31,6 +26,7 @@ async function getUser(userId: string) {
   
     return res.data.user;
   } catch (error) {
+    console.error("Error fetching user data:", error);
     return null;
   }
 }

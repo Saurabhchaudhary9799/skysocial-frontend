@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { useUserStore } from "@/store/useUserStore";
+import { User, useUserStore } from "@/store/useUserStore";
 
-export default function UserHydrator({ user }: { user: any }) {
+export default function UserHydrator({ user }: { user: User }) {
   const setUser = useUserStore((state) => state.setUser);
 
   useEffect(() => {

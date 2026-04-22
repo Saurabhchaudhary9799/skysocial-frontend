@@ -8,6 +8,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useUserStore } from "@/store/useUserStore";
 import { usePostStore } from "@/store/usePostStore";
+import Image from "next/image";
 
 /* =========================
    ✅ ZOD SCHEMA
@@ -30,7 +31,7 @@ const postSchema = z.object({
     ),
 });
 
-export default function CreatePostModal({ onClose }: any) {
+export default function CreatePostModal({ onClose }:  { onClose: () => void }) {
   const { user, setUser } = useUserStore();
   const addPost = usePostStore((state) => state.addPost);
 
@@ -51,7 +52,7 @@ export default function CreatePostModal({ onClose }: any) {
   /* =========================
      ✅ IMAGE HANDLING
   ========================= */
-  const handleImage = (e: any) => {
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -115,8 +116,9 @@ export default function CreatePostModal({ onClose }: any) {
       setPreview(null);
 
       onClose();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to create post ❌");
+    } catch (error) {
+      console.error(error);
+      toast.error( "Failed to create post ❌");
     } finally {
       setLoading(false);
     }
@@ -179,7 +181,7 @@ export default function CreatePostModal({ onClose }: any) {
               </label>
             ) : (
               <div className="relative h-64 rounded-xl overflow-hidden">
-                <img src={preview} className="w-full h-full object-cover" />
+                <Image src={preview} alt="preview"  width={400} height={400} className="w-full h-full object-cover" />
                 <button
                   onClick={removeImage}
                   className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full"

@@ -20,10 +20,12 @@ import {
   type PostLike,
 } from "@/lib/post-likes";
 import { useSavedPostStore } from "@/store/useSavedPostStore";
-import { hasAlreadySaved, SavedPost } from "@/lib/post-save";
+import { hasAlreadySaved } from "@/lib/post-save";
 import { toast } from "sonner";
 import { useFollowStore } from "@/store/useFollowStore";
 import { socket } from "@/lib/socket";
+import { PostCardProps } from "@/lib/types";
+import Image from "next/image";
 
 type Comment = {
   _id: string;
@@ -69,11 +71,11 @@ export default function PostModal({
 }: Props) {
   const currentUser = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
-  const { savedPosts, setSavedPosts, addSavedPost, removeSavedPost } =
+  const { savedPosts, addSavedPost, removeSavedPost } =
     useSavedPostStore();
-  const { isFollowing, followUser, unfollowUser, fetchFollowings } =
+  const { isFollowing, followUser, unfollowUser } =
     useFollowStore();
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<PostCardProps | null>(null);
   const [comment, setComment] = useState("");
   const [mounted, setMounted] = useState(false);
   const [localLikes, setLocalLikes] = useState<PostLike[]>(initialLikes);
@@ -130,6 +132,7 @@ export default function PostModal({
         setLocalComments(nextComments);
         setAlreadyFollowing(isFollowing(res.data.post?.user?._id));
       } catch (err) {
+        console.error(err);
         console.log("Failed to fetch post");
       } finally {
         setIsPostLoading(false);
@@ -137,7 +140,7 @@ export default function PostModal({
     };
 
     fetchPost();
-  }, [postId]);
+  }, [postId,isFollowing]);
 
   const formatTimeAgo = (date: string) => {
     const now = new Date();
@@ -390,9 +393,11 @@ export default function PostModal({
             <div className="animate-pulse w-full h-full bg-gray-300 rounded-2xl" />
           ) : (
             <div className="relative w-full h-full flex items-center justify-center">
-              <img
-                src={post.image}
+              <Image
+                src={post?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=User${post._id}`}
                 alt="post"
+                width={400}
+                        height={400}
                 className="max-w-full max-h-full object-contain rounded-2xl shadow-lg"
               />
             </div>
@@ -413,9 +418,11 @@ export default function PostModal({
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5">
                     <div className="w-full h-full rounded-full bg-white p-0.5">
                       {post.user?.profile_image ? (
-                        <img
-                          src={post.user.profile_image}
-                          alt={post.user.username}
+                        <Image
+                          src={post?.user.profile_image}
+                          alt={post?.user.username || "profile"}
+                          width={400}
+                        height={400}
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
@@ -465,9 +472,11 @@ export default function PostModal({
                       <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0 p-0.5">
                         <div className="w-full h-full rounded-full bg-white p-0.5">
                           {comment.user?.profile_image ? (
-                            <img
+                            <Image
                               src={comment.user.profile_image}
                               alt={comment.user.username}
+                              width={400}
+                        height={400}
                               className="w-full h-full rounded-full object-cover"
                             />
                           ) : (
@@ -542,10 +551,12 @@ export default function PostModal({
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div>
                     {currentUser?.profile_image ? (
-                      <img
+                      <Image
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                        src={currentUser.profile_image || "/default-avatar.png"}
+                        src={currentUser.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`}
                         alt="profile"
+                        width={400}
+                        height={400}
                       />
                     ) : (
                       <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-400" />

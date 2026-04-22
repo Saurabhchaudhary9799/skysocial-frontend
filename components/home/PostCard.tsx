@@ -1,7 +1,6 @@
 "use client";
 import {
   Bookmark,
-  Ellipsis,
   EllipsisVertical,
   Heart,
   MessageCircle,
@@ -10,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import PostModal from "../profile/postModal";
 import axios from "axios";
-import { useUserStore } from "@/store/useUserStore";
+import { User, useUserStore } from "@/store/useUserStore";
 import {
   addLikeIfMissing,
   hasUserLiked,
@@ -20,7 +19,7 @@ import {
 import {
   getSavedPostByUser,
   hasAlreadySaved,
-  SavedPost,
+ 
 } from "@/lib/post-save";
 import { useSavedPostStore } from "@/store/useSavedPostStore";
 import { useFollowStore } from "@/store/useFollowStore";
@@ -33,7 +32,7 @@ import {
 } from "@/lib/api-client";
 import PostOptionsModal from "../post/postOptionModal";
 import { toast } from "sonner";
-import { usePostStore } from "@/store/usePostStore";
+
 import Image from "next/image";
 import { socket } from "@/lib/socket";
 
@@ -52,16 +51,16 @@ export default function PostCard({
     useSavedPostStore();
   const { isFollowing, followUser, unfollowUser, fetchFollowings } =
     useFollowStore();
-  const { deletePost } = usePostStore();
+  
 
   const author = user?.name || user?.username || "Unknown";
   const handle = `@${user?.username || "unknown"}`;
   const time = formatTimeAgo(createdAt);
-  const initials = author
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2);
+  // const initials = author
+  //   .split(" ")
+  //   .map((part) => part[0])
+  //   .join("")
+  //   .slice(0, 2);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [postOptionModalOpen, setPostOptionModalOpen] = useState(false);
@@ -79,7 +78,7 @@ export default function PostCard({
     setLocalComments(comments);
   }, [comments]);
 
-  const currentUserId = currentUser?._id || (currentUser as any)?.id;
+  const currentUserId = currentUser?._id || (currentUser as User)?._id;
   const authorId = user?._id;
   const alreadyFollowing = authorId ? isFollowing(authorId) : false;
   const isLiked = hasUserLiked(localLikes, currentUserId);
@@ -91,7 +90,7 @@ export default function PostCard({
     if (!currentUserId) return;
 
     fetchFollowings(currentUserId);
-  }, [currentUserId]);
+  }, [currentUserId,fetchFollowings]);
 
   useEffect(() => {
     if (!currentUserId) {
@@ -104,7 +103,7 @@ export default function PostCard({
     };
 
     fetchSavedPosts();
-  }, [currentUserId]);
+  }, [currentUserId,setSavedPosts]);
 
   const handleLike = async () => {
     if (!currentUserId || isLiking) {
@@ -272,7 +271,7 @@ export default function PostCard({
 
       {image ? (
         <div className="mt-4 overflow-hidden rounded-[1.5rem]">
-          <img src={image} alt="post" className="h-96 w-full object-cover" />
+          <Image src={image} alt="post" width={400} height={400} className="h-96 w-full object-cover" />
         </div>
       ) : null}
 

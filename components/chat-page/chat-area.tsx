@@ -1,14 +1,29 @@
 "use client";
 
-import { ArrowLeft, SendHorizonal, Smile } from "lucide-react";
-import { useChatStore } from "@/store/useChatStore";
+import { ArrowLeft, SendHorizonal } from "lucide-react";
+import { Message, useChatStore } from "@/store/useChatStore";
 import { useUserStore } from "@/store/useUserStore";
 import { socket } from "@/lib/socket";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { MessageStatus } from "./message-status";
+import Image from "next/image";
 
-function MessageBubble({ message, isOwn, status }: any) {
+type IncomingMessage = {
+  sender: string;
+  receiver: string;
+  message: string;
+};
+
+function MessageBubble({
+  message,
+  isOwn,
+  status,
+}: {
+  message: string;
+  isOwn: boolean;
+  status?: string;
+}) {
   return (
     <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
       <div
@@ -32,7 +47,8 @@ function MessageBubble({ message, isOwn, status }: any) {
 }
 
 export default function ChatArea() {
-  const { activeChat, setActiveChat, messages, setMessages, addMessage } = useChatStore();
+  const { activeChat, setActiveChat, messages, setMessages, addMessage } =
+    useChatStore();
   const currentUser = useUserStore((s) => s.user);
   const { updateConversation } = useChatStore();
 
@@ -41,7 +57,7 @@ export default function ChatArea() {
   const [typingUser, setTypingUser] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const typingTimeoutRef = useRef<any>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ✅ NEW: bottom ref
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -78,7 +94,7 @@ export default function ChatArea() {
       });
     }
 
-    clearTimeout(typingTimeoutRef.current);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       socket.emit("stop-typing", {
@@ -97,15 +113,15 @@ export default function ChatArea() {
   useEffect(() => {
     if (!activeChat?._id) return;
 
-    const handler = (data: any) => {
-      if (data.senderId === activeChat._id) {
+    const handler = (data: IncomingMessage) => {
+      if (data.sender === activeChat._id) {
         addMessage({ ...data, status: "delivered" });
       }
 
       updateConversation(
         {
-          sender: data.senderId,
-          receiver: data.receiverId,
+          sender: data.sender,
+          receiver: data.receiver,
           message: data.message,
         },
         currentUser?._id || "",
@@ -117,7 +133,7 @@ export default function ChatArea() {
     return () => {
       socket.off("receive-message", handler);
     };
-  }, [activeChat?._id]);
+  }, [activeChat, currentUser?._id, addMessage, updateConversation]);
 
   // ✅ FETCH (ONLY sorting added)
   useEffect(() => {
@@ -129,13 +145,13 @@ export default function ChatArea() {
         { withCredentials: true },
       );
 
-      const msgs = (res.data?.result.allMessages || [])
+      const msgs: Message[] = (res.data?.result.allMessages || [])
         .sort(
-          (a: any, b: any) =>
+          (a: Message, b: Message) =>
             new Date(a.createdAt || "").getTime() -
             new Date(b.createdAt || "").getTime(),
         )
-        .map((m: any) => ({
+        .map((m: Message) => ({
           ...m,
           status: "delivered",
         }));
@@ -144,7 +160,7 @@ export default function ChatArea() {
     };
 
     fetchMessages();
-  }, [activeChat?._id]);
+  }, [activeChat, setMessages]);
 
   // ✅ TYPING LISTENER
   useEffect(() => {
@@ -160,7 +176,7 @@ export default function ChatArea() {
       socket.off("typing");
       socket.off("stop-typing");
     };
-  }, [activeChat?._id]);
+  }, [activeChat]);
 
   // ✅ SEEN EMIT
   useEffect(() => {
@@ -170,7 +186,7 @@ export default function ChatArea() {
       senderId: activeChat._id,
       receiverId: currentUser._id,
     });
-  }, [messages, activeChat?._id]);
+  }, [messages, activeChat?._id, currentUser?._id]);
 
   // ✅ SEEN LISTENER
   useEffect(() => {
@@ -187,7 +203,7 @@ export default function ChatArea() {
     return () => {
       socket.off("messages-seen");
     };
-  }, [activeChat?._id]);
+  }, [activeChat?._id, currentUser?._id, setMessages]);
 
   if (!activeChat) {
     return (
@@ -215,8 +231,8 @@ export default function ChatArea() {
     addMessage(newMsg);
 
     socket.emit("send-message", {
-      senderId: currentUser?._id,
-      receiverId: activeChat?._id,
+      sender: currentUser?._id,
+      receiver: activeChat?._id,
       message: input,
     });
 
@@ -231,18 +247,26 @@ export default function ChatArea() {
     );
 
     setInput("");
-    textareaRef.current && (textareaRef.current.style.height = "auto");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   };
 
   return (
     <div className="flex flex-col h-full bg-white   rounded-4xl ">
       {/* Header */}
       <div className="flex items-center gap-3 p-3 border-b border-gray-100">
-        <button onClick={() => setActiveChat(null)} className="cursor-pointer p-2 rounded-full hover:bg-surface-active transition ">
+        <button
+          onClick={() => setActiveChat(null)}
+          className="cursor-pointer p-2 rounded-full hover:bg-surface-active transition "
+        >
           <ArrowLeft size={20} />
         </button>
-        <img
-          src={activeChat.profile_image || "/default-avatar.png"}
+        <Image
+          src={activeChat.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`}
+          alt="profile image"
+          width={400}
+          height={400}
           className="h-10 w-10 rounded-full"
         />
         <div>
@@ -283,8 +307,11 @@ export default function ChatArea() {
                 }`}
               >
                 {!isOwn && (
-                  <img
-                    src={activeChat.profile_image || "/default-avatar.png"}
+                  <Image
+                    src={activeChat.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`}
+                    alt="profile image"
+                    width={400}
+                    height={400}
                     className="h-8 w-8 rounded-full"
                   />
                 )}
@@ -298,8 +325,11 @@ export default function ChatArea() {
                 </div>
 
                 {isOwn && (
-                  <img
-                    src={currentUser?.profile_image || "/default-avatar.png"}
+                  <Image
+                    src={currentUser?.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`}
+                    alt="profile image"
+                    width={400}
+                    height={400}
                     className="h-8 w-8 rounded-full"
                   />
                 )}

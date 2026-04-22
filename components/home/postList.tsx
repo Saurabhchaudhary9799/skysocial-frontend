@@ -1,5 +1,6 @@
 import getHomeFeed from "@/lib/api-server";
 import PostCard from "@/components/home/PostCard";
+import { PostCardProps } from "@/lib/types";
 
 export default async function PostList() {
   const posts = await getHomeFeed();
@@ -14,7 +15,7 @@ export default async function PostList() {
 
   return (
     <div className="space-y-5">
-      {posts.map((post: any) => (
+      {posts.map((post: PostCardProps) => (
         <PostCard key={post._id} {...post} />
       ))}
     </div>

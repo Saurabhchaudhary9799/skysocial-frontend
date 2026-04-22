@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 type Props = {
@@ -27,9 +28,11 @@ export default function ProfileHeader({
     <div className="rounded-4xl bg-surface-card overflow-hidden sunken-purple-shadow">
       <div className="h-40 sm:h-48 md:h-52 w-full relative">
         {coverImage ? (
-          <img
+          <Image
             src={coverImage}
             alt="cover"
+            width={400}
+            height={400}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -39,7 +42,7 @@ export default function ProfileHeader({
         <div className="absolute left-4 sm:left-6 bottom-[-40px] sm:bottom-[-48px]">
           <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-full border-4 border-background bg-surface-container overflow-hidden shadow-lg ring-2 ring-primary/30">
             {profileImage ? (
-              <img src={profileImage} className="w-full h-full object-cover" />
+              <Image src={profileImage} alt="profile image" width={400} height={400} className="w-full h-full object-cover" />
             ) : (
               <div className="flex items-center justify-center h-full text-xs text-on-surface-variant">
                 No Image

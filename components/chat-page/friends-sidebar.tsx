@@ -7,15 +7,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { formatTimeAgo } from "@/lib/format";
 import SkeletonItem from "../skeleton/friends-skeleton";
-
-type Conversation = {
-  userId: string;
-  username: string;
-  profile_image?: string;
-  lastMessage: string;
-  createdAt: string;
-  isOwn?: boolean;
-};
+import Image from "next/image";
 
 type SearchUser = {
   _id: string;
@@ -42,7 +34,7 @@ const FriendsSidebar = () => {
 
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/users/messages/${currentUser?._id}/conversations`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         setConversations(res.data || []);
@@ -54,7 +46,7 @@ const FriendsSidebar = () => {
     };
 
     if (currentUser?._id) fetchConversations();
-  }, [currentUser?._id]);
+  }, [currentUser?._id, setConversations]);
 
   // ✅ Debounced search
   useEffect(() => {
@@ -72,7 +64,7 @@ const FriendsSidebar = () => {
           {
             params: { username: query },
             withCredentials: true,
-          }
+          },
         );
 
         setResults(res.data?.result || []);
@@ -114,7 +106,6 @@ const FriendsSidebar = () => {
         />
       </div>
 
-     
       {query ? (
         searchLoading ? (
           <>
@@ -133,8 +124,11 @@ const FriendsSidebar = () => {
               onClick={() => handleSelectUser(user)}
               className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-gray-200"
             >
-              <img
-                src={user.profile_image || "/default-avatar.png"}
+              <Image
+                src={user.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
+                alt="Profile Image"
+                width={400}
+                height={400}
                 className="h-10 w-10 rounded-full object-cover"
               />
 
@@ -144,8 +138,6 @@ const FriendsSidebar = () => {
         )
       ) : (
         <>
-         
-
           {loading ? (
             <>
               {Array.from({ length: 6 }).map((_, i) => (
@@ -174,13 +166,18 @@ const FriendsSidebar = () => {
                 }`}
               >
                 <div className="flex items-start  gap-3 min-w-0 ">
-                  <img
-                    src={c.profile_image || "/default-avatar.png"}
+                  <Image
+                    src={c.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.username}`}
+                    alt="profile Image"
+                    width={40}
+                    height={40}
                     className="h-10 w-10 rounded-full object-cover"
                   />
 
                   <div className="flex flex-col    min-w-0 ">
-                    <p className="font-normal  truncate leading-none">{c.username}</p>
+                    <p className="font-normal  truncate leading-none">
+                      {c.username}
+                    </p>
                     <p className="text-xs  truncate leading-tight">
                       {c.isOwn ? "You: " : ""}
                       {c.lastMessage}

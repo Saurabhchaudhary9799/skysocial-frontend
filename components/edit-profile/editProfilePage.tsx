@@ -1,7 +1,7 @@
 "use client";
 
 import SectionCard from "@/components/edit-profile/sectionCard";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import axios from "axios";
@@ -10,10 +10,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "@/store/useUserStore"; // 🔥 Zustand
-
-type Props = {
-  user: any;
-};
+import Image from "next/image";
 
 /* ✅ Zod Schema */
 const schema = z.object({
@@ -30,35 +27,41 @@ export default function EditProfilePage() {
   // 🔥 Zustand
   const { user, setUser } = useUserStore();
 
-  if (!user) {
-    toast.error("User not found. Please log in again.");
-    router.push("/login");
-    return null;
-  }
-
+  /* ✅ ALWAYS CALL HOOKS FIRST */
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
-    watch,
+    
   } = useForm<FormType>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: user.name || "",
-      username: user.username || "",
-      bio: user.bio || "",
+      name: user?.name || "",
+      username: user?.username || "",
+      bio: user?.bio || "",
     },
   });
 
-  const bioValue = watch("bio");
+  const bioValue = useWatch({
+  control,
+  name: "bio",
+});
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
 
   const [profilePreview, setProfilePreview] = useState(
-    user.profile_image || null,
+    user?.profile_image || null,
   );
-  const [coverPreview, setCoverPreview] = useState(user.cover_image || null);
+  const [coverPreview, setCoverPreview] = useState(user?.cover_image || null);
+
+  /* ✅ THEN condition */
+  if (!user) {
+    toast.error("User not found. Please log in again.");
+    router.push("/login");
+    return null;
+  }
 
   /* ✅ Image handler */
   const handleImageChange = (
@@ -111,7 +114,7 @@ export default function EditProfilePage() {
       // 🔥 go back to profile
       // router.back();
     } catch (err) {
-      // console.log(err);
+      console.error(err);
       toast.error("Update failed ❌");
     }
   };
@@ -174,11 +177,14 @@ export default function EditProfilePage() {
         <div className="relative">
           {/* Cover */}
           <div className="h-40 rounded-4xl overflow-hidden relative">
-            <img
+            <Image
               src={
                 coverPreview ||
                 "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
               }
+              alt="cover_preview"
+              width={400}
+              height={400}
               className="w-full h-full object-cover"
             />
 
@@ -198,11 +204,14 @@ export default function EditProfilePage() {
           <div className="absolute -bottom-8 left-6">
             <label className="cursor-pointer">
               <div className="w-20 h-20 rounded-full border-4 border-background overflow-hidden shadow-md">
-                <img
+                <Image
                   src={
                     profilePreview ||
                     "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
                   }
+                  alt="profile preview"
+                  width={400}
+                  height={400}
                   className="w-full h-full object-cover"
                 />
               </div>

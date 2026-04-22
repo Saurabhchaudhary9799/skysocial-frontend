@@ -6,7 +6,7 @@ export type User = {
   _id: string;
   name: string;
   username: string;
-  bio?: string;
+  bio?: string ;
   profile_image?: string;
   cover_image?: string;
   followers?: number;

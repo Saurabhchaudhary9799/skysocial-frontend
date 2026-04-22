@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, House, MessageSquareText, Plus, UserRound } from "lucide-react";
+import {  House, MessageSquareText, Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "../logo/logo";
@@ -8,6 +8,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { useState } from "react";
 import CreatePostModal from "../post/createPostModal";
 import SidebarSkeleton from "../skeleton/sidebarSkeleton";
+import Image from "next/image";
 
 type SidebarProps = {
   items: Array<{
@@ -102,9 +103,11 @@ export default function Sidebar({ items }: SidebarProps) {
         {/* User Card */}
         <div className="flex items-center gap-3 rounded-2xl bg-surface-low/70 p-3">
           {user.profile_image ? (
-            <img
+            <Image
               src={user.profile_image}
               alt={user.name}
+              width={400}
+              height={400}
               className="h-10 w-10 rounded-full object-cover"
             />
           ) : (
