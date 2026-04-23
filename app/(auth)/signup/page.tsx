@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useState } from "react";
 import FormField from "@/components/ui/FormField";
+import API from "@/lib/axios";
+import { initializeSession } from "@/lib/auth-client";
 
 const signupSchema = z.object({
   name: z.string().min(2, "Full name must be at least 2 characters"),
@@ -65,23 +67,17 @@ export default function Signup() {
     setErrors({});
     setApiError("");
     setIsSubmitting(true);
-  
-    try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/signup`,
-        result.data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        },
-      );
 
-      
+    try {
+      const res = await API.post("/users/signup", {
+        ...result.data,
+      });
+
+      await initializeSession(res.data);
+
       setFormData(initialFormData);
       setErrors({});
-      router.push("/login");
+      router.replace("/home");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setApiError(
@@ -97,7 +93,7 @@ export default function Signup() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
-   
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 

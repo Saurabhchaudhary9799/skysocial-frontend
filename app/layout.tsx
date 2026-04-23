@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Be_Vietnam_Pro, Manrope } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import AuthInitializer from "@/components/providers/authInitializer";
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-jakarta",
@@ -36,7 +37,7 @@ export default function RootLayout({
       className={`${jakarta.variable} ${vietnam.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="font-manrope min-h-full flex flex-col">
-        
+        <AuthInitializer/>
         {children}
         <Toaster richColors position="top-center" />
       </body>

@@ -4,10 +4,10 @@ import { useUserStore } from "@/store/useUserStore";
 import { useChatStore } from "@/store/useChatStore";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { formatTimeAgo } from "@/lib/format";
 import SkeletonItem from "../skeleton/friends-skeleton";
 import Image from "next/image";
+import API from "@/lib/axios";
 
 type SearchUser = {
   _id: string;
@@ -32,9 +32,8 @@ const FriendsSidebar = () => {
       try {
         setLoading(true);
 
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/messages/${currentUser?._id}/conversations`,
-          { withCredentials: true },
+        const res = await API.get(
+          `/users/messages/${currentUser?._id}/conversations`,
         );
 
         setConversations(res.data || []);
@@ -59,13 +58,9 @@ const FriendsSidebar = () => {
       try {
         setSearchLoading(true);
 
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/search-user`,
-          {
-            params: { username: query },
-            withCredentials: true,
-          },
-        );
+        const res = await API.get("/users/search-user", {
+          params: { username: query },
+        });
 
         setResults(res.data?.result || []);
       } catch (err) {
@@ -125,7 +120,10 @@ const FriendsSidebar = () => {
               className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-gray-200"
             >
               <Image
-                src={user.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
+                src={
+                  user.profile_image ||
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
+                }
                 alt="Profile Image"
                 width={400}
                 height={400}
@@ -167,7 +165,10 @@ const FriendsSidebar = () => {
               >
                 <div className="flex items-start  gap-3 min-w-0 ">
                   <Image
-                    src={c.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.username}`}
+                    src={
+                      c.profile_image ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.username}`
+                    }
                     alt="profile Image"
                     width={40}
                     height={40}

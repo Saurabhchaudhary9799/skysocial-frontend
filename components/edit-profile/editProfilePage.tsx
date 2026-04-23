@@ -3,14 +3,14 @@
 import SectionCard from "@/components/edit-profile/sectionCard";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "@/store/useUserStore"; // 🔥 Zustand
 import Image from "next/image";
+import API from "@/lib/axios";
 
 /* ✅ Zod Schema */
 const schema = z.object({
@@ -25,7 +25,7 @@ export default function EditProfilePage() {
   const router = useRouter();
 
   // 🔥 Zustand
-  const { user, setUser } = useUserStore();
+  const { user, setUser,isLoaded } = useUserStore();
 
   /* ✅ ALWAYS CALL HOOKS FIRST */
   const {
@@ -57,11 +57,14 @@ export default function EditProfilePage() {
   const [coverPreview, setCoverPreview] = useState(user?.cover_image || null);
 
   /* ✅ THEN condition */
-  if (!user) {
-    toast.error("User not found. Please log in again.");
-    router.push("/login");
-    return null;
-  }
+   useEffect(() => {
+    if (isLoaded && !user) {
+      router.replace("/login"); // ✅ correct
+    }
+  }, [isLoaded, user, router]);
+
+  if (!isLoaded) return null;
+  if (!user) return null;
 
   /* ✅ Image handler */
   const handleImageChange = (
@@ -94,11 +97,7 @@ export default function EditProfilePage() {
       if (profileImage) formData.append("profile_image", profileImage);
       if (coverImage) formData.append("cover_image", coverImage);
 
-      const res = await axios.patch(
-        "http://localhost:8000/api/v1/users/me",
-        formData,
-        { withCredentials: true },
-      );
+     const res = await API.patch("/users/me", formData);
       // console.log(res.data.data);
       // 🔥 IMPORTANT: update global store
       console.log("Updated user data from API:", res.data.data); // Debug log
@@ -180,7 +179,7 @@ export default function EditProfilePage() {
             <Image
               src={
                 coverPreview ||
-                "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
+                "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
               }
               alt="cover_preview"
               width={400}

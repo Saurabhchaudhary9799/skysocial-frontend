@@ -4,11 +4,11 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { X, Image as ImageIcon } from "lucide-react";
 import { z } from "zod";
-import axios from "axios";
 import { toast } from "sonner";
 import { useUserStore } from "@/store/useUserStore";
 import { usePostStore } from "@/store/usePostStore";
 import Image from "next/image";
+import API from "@/lib/axios";
 
 /* =========================
    ✅ ZOD SCHEMA
@@ -90,13 +90,9 @@ export default function CreatePostModal({ onClose }:  { onClose: () => void }) {
         formData.append("image", image);
       }
 
-      const apiBaseUrl =
-        process.env.NEXT_PUBLIC_API_URL?.trim() ||
-        "http://localhost:8000/api/v1";
+  
 
-      const res = await axios.post(`${apiBaseUrl}/posts`, formData, {
-        withCredentials: true,
-      });
+     const res = await API.post("/posts", formData);
 
       toast.success("Post created successfully 🚀");
       console.log(res);

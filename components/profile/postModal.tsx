@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import axios from "axios";
 import {
   Bookmark,
   Clock,
@@ -26,6 +25,12 @@ import { useFollowStore } from "@/store/useFollowStore";
 import { socket } from "@/lib/socket";
 import { PostCardProps } from "@/lib/types";
 import Image from "next/image";
+import {
+  toggleFollowUser,
+  toggleLikePost,
+  toggleSavePost,
+} from "@/lib/api-client";
+import API from "@/lib/axios";
 
 type Comment = {
   _id: string;
@@ -71,10 +76,8 @@ export default function PostModal({
 }: Props) {
   const currentUser = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
-  const { savedPosts, addSavedPost, removeSavedPost } =
-    useSavedPostStore();
-  const { isFollowing, followUser, unfollowUser } =
-    useFollowStore();
+  const { savedPosts, addSavedPost, removeSavedPost } = useSavedPostStore();
+  const { isFollowing, followUser, unfollowUser } = useFollowStore();
   const [post, setPost] = useState<PostCardProps | null>(null);
   const [comment, setComment] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -121,10 +124,7 @@ export default function PostModal({
     const fetchPost = async () => {
       try {
         setIsPostLoading(true);
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}`,
-          { withCredentials: true },
-        );
+        const res = await API.get(`/posts/${postId}`);
         setPost(res.data.post);
         const nextLikes = res.data.post?.likes || [];
         setLocalLikes(nextLikes);
@@ -140,7 +140,7 @@ export default function PostModal({
     };
 
     fetchPost();
-  }, [postId,isFollowing]);
+  }, [postId, isFollowing]);
 
   const formatTimeAgo = (date: string) => {
     const now = new Date();
@@ -171,16 +171,9 @@ export default function PostModal({
 
     try {
       setIsLiking(true);
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/like`,
-        {},
-        {
-          withCredentials: true,
-        },
-      );
-
-      const message = response.data?.message;
-      const returnedLike = response.data?.like;
+      const data = await toggleLikePost(postId);
+      const message = data?.message;
+      const returnedLike = data?.like;
 
       if (message === "Post liked") {
         setLocalLikes((prevLikes) =>
@@ -214,12 +207,11 @@ export default function PostModal({
     try {
       setIsCommenting(true);
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`,
-        { message: trimmedComment },
-        { withCredentials: true },
-      );
+      const response = await API.post(`/posts/${postId}/comments`, {
+        message: trimmedComment,
+      });
 
+      console.log("Comment response:", response.data);
       const returnedComment =
         response.data?.result?.comment ?? response.data?.comment;
 
@@ -253,14 +245,10 @@ export default function PostModal({
       return;
     }
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/save`,
-        {},
-        { withCredentials: true },
-      );
+      const data = await toggleSavePost(postId);
       // console.log(response);
-      const message = response.data?.message;
-      const savedItem = response.data?.save;
+      const message = data?.message;
+      const savedItem = data?.save;
       if (message === "Post saved") {
         addSavedPost({
           _id: savedItem._id,
@@ -283,12 +271,7 @@ export default function PostModal({
 
   const handleCommentDelete = async (commentId: string) => {
     try {
-      const res = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments/${commentId}`,
-        {
-          withCredentials: true,
-        },
-      );
+      const res = await API.delete(`/posts/${postId}/comments/${commentId}`);
 
       setLocalComments((prev) =>
         prev.filter((comment) => comment._id !== commentId),
@@ -306,13 +289,9 @@ export default function PostModal({
     if (!authorId) return;
 
     try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/${authorId}/follower`,
-        {},
-        { withCredentials: true },
-      );
+      const data = await toggleFollowUser(authorId);
       // console.log("after follow",res.data)
-      const message = res.data?.message;
+      const message = data?.message;
 
       if (message === "Followed successfully") {
         followUser({
@@ -377,16 +356,14 @@ export default function PostModal({
       transform 
       scale-100
       "
-    
         onClick={(e) => e.stopPropagation()}
       >
-
-         <button
-    onClick={onClose}
-    className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/60 text-white backdrop-blur sm:hidden"
-  >
-    <X size={18} />
-  </button>
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/60 text-white backdrop-blur sm:hidden"
+        >
+          <X size={18} />
+        </button>
         {/* LEFT - IMAGE */}
         <div className="w-full md:w-1/2 h-[40vh] sm:h-[45vh] md:h-auto bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-3 sm:p-6 md:p-8">
           {isPostLoading || !post ? (
@@ -394,10 +371,13 @@ export default function PostModal({
           ) : (
             <div className="relative w-full h-full flex items-center justify-center">
               <Image
-                src={post?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=User${post._id}`}
+                src={
+                  post?.image ||
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=User${post._id}`
+                }
                 alt="post"
                 width={400}
-                        height={400}
+                height={400}
                 className="max-w-full max-h-full object-contain rounded-2xl shadow-lg"
               />
             </div>
@@ -422,7 +402,7 @@ export default function PostModal({
                           src={post?.user.profile_image}
                           alt={post?.user.username || "profile"}
                           width={400}
-                        height={400}
+                          height={400}
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
@@ -476,7 +456,7 @@ export default function PostModal({
                               src={comment.user.profile_image}
                               alt={comment.user.username}
                               width={400}
-                        height={400}
+                              height={400}
                               className="w-full h-full rounded-full object-cover"
                             />
                           ) : (
@@ -553,7 +533,10 @@ export default function PostModal({
                     {currentUser?.profile_image ? (
                       <Image
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                        src={currentUser.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`}
+                        src={
+                          currentUser.profile_image ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`
+                        }
                         alt="profile"
                         width={400}
                         height={400}

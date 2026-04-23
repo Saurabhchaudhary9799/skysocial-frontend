@@ -4,10 +4,10 @@ import { ArrowLeft, SendHorizonal } from "lucide-react";
 import { Message, useChatStore } from "@/store/useChatStore";
 import { useUserStore } from "@/store/useUserStore";
 import { socket } from "@/lib/socket";
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { MessageStatus } from "./message-status";
 import Image from "next/image";
+import API from "@/lib/axios";
 
 type IncomingMessage = {
   sender: string;
@@ -140,10 +140,7 @@ export default function ChatArea() {
     if (!activeChat?._id) return;
 
     const fetchMessages = async () => {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/messages/${activeChat._id}/message`,
-        { withCredentials: true },
-      );
+      const res = await API.get(`/users/messages/${activeChat._id}/message`);
 
       const msgs: Message[] = (res.data?.result.allMessages || [])
         .sort(
@@ -217,11 +214,9 @@ export default function ChatArea() {
   const handleSend = async () => {
     if (!input) return;
 
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/users/messages/${activeChat._id}/message`,
-      { message: input },
-      { withCredentials: true },
-    );
+    const res = await API.post(`/users/messages/${activeChat._id}/message`, {
+      message: input,
+    });
 
     const newMsg = {
       ...res.data?.result?.message,
@@ -263,7 +258,10 @@ export default function ChatArea() {
           <ArrowLeft size={20} />
         </button>
         <Image
-          src={activeChat.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`}
+          src={
+            activeChat.profile_image ||
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`
+          }
           alt="profile image"
           width={400}
           height={400}
@@ -308,7 +306,10 @@ export default function ChatArea() {
               >
                 {!isOwn && (
                   <Image
-                    src={activeChat.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`}
+                    src={
+                      activeChat.profile_image ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`
+                    }
                     alt="profile image"
                     width={400}
                     height={400}
@@ -326,7 +327,10 @@ export default function ChatArea() {
 
                 {isOwn && (
                   <Image
-                    src={currentUser?.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`}
+                    src={
+                      currentUser?.profile_image ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${activeChat.username}`
+                    }
                     alt="profile image"
                     width={400}
                     height={400}

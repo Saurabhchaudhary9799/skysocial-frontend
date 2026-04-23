@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import API from "@/lib/axios";
 
 type FollowUser = {
   _id: string;
@@ -42,10 +43,7 @@ export const useFollowStore = create<FollowStore>((set, get) => ({
   // ✅ fetch followers
   fetchFollowers: async (userId) => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/followers`,
-        { withCredentials: true }
-      );
+      const res = await API.get(`/users/${userId}/followers`);
 
       set({
         followers: res.data || [],
@@ -58,10 +56,7 @@ export const useFollowStore = create<FollowStore>((set, get) => ({
   // ✅ fetch followings
   fetchFollowings: async (userId) => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/followings`,
-        { withCredentials: true }
-      );
+      const res = await API.get(`/users/${userId}/followings`);
 
       // console.log(res.data);
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { usePostStore } from "@/store/usePostStore";
 import PostModal from "@/components/profile/postModal";
 import type { PostLike } from "@/lib/post-likes";
 import Image from "next/image";
 import { PostCardProps } from "@/lib/types";
+import API from "@/lib/axios";
 
 type Props = {
   userId: string;
@@ -39,10 +39,7 @@ export default function ProfileTabs({ userId }: Props) {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/posts/user/${userId}`,
-          { withCredentials: true },
-        );
+        const res = await API.get(`/posts/user/${userId}`);
 
         setPosts(res.data.result.posts);
       } catch (error) {

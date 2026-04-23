@@ -5,30 +5,20 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import FormField from "@/components/ui/FormField";
-// import { cookies } from "next/headers";
-// import { redirect } from "next/navigation";
+import API from "@/lib/axios";
+import { initializeSession } from "@/lib/auth-client";
 
 const loginSchema = z.object({
   username: z
     .string()
     .min(8, "Username must be at least 3 characters")
     .max(20, "Username must be at most 20 characters"),
-    // .regex(
-    //   /^[a-zA-Z0-9_]+$/,
-    //   "Username can only contain letters, numbers, and underscores",
-    // ),
   password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  // const cookieStore = await cookies();
-  // const session = cookieStore.get("session");
-
-  // if (session) {
-  //   redirect("/home");
-  // }
   const router = useRouter();
 
   const initialFormData: LoginFormData = {
@@ -63,18 +53,12 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/login`,
-        { ...result.data },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        },
-      );
+      const res = await API.post("/users/login", {
+        ...result.data,
+      });
 
-      
+      await initializeSession(res.data);
+
       setFormData(initialFormData);
       router.replace("/home");
     } catch (error) {
@@ -97,16 +81,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background selection:bg-primary-container selection:text-on-primary overflow-hidden relative font-manrope celestial-mesh">
-      
       <main className="flex items-center justify-center w-full px-4 relative z-10 py-10">
-        <div
-          className="w-full max-w-[400px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow"
-        >
+        <div className="w-full max-w-[400px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow">
           {/* Logo */}
           <div className="flex flex-col items-center gap-2 mb-6">
-            <div
-              className="relative w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container shadow-lg"
-            >
+            <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container shadow-lg">
               {/* Big sparkle */}
               <svg
                 className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-on-primary"

@@ -1,18 +1,15 @@
-import { getCurrentUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
+"use client";
 
-export default async function AuthLayout({
+import AuthGate from "@/components/providers/AuthGate";
+
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getCurrentUser();
-
-  if (session) {
-    redirect("/home");
-  }
-
   return (
-    <div className="min-h-screen bg-background">{children}</div>
+    <AuthGate mode="guest" redirectTo="/home">
+      <div className="min-h-screen bg-background">{children}</div>
+    </AuthGate>
   );
 }

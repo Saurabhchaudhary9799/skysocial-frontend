@@ -1,11 +1,10 @@
+"use client";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import PostListSkeleton from "@/components/skeleton/postListSkeleton";
 
 const PostList = dynamic(() => import("@/components/home/postList"));
 const RightRail = dynamic(() => import("@/components/home/RightRail"));
-
-
 
 const trends = [
   {
@@ -38,12 +37,9 @@ const suggestions = [
   },
 ];
 
-
-
 export default function Home() {
   return (
     <div className="grid gap-y-2 gap-x-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:max-w-[1440px] mx-auto px-2 py-4">
-      
       {/* Feed */}
       <section className="space-y-5 min-h-[60vh]">
         <Suspense fallback={<PostListSkeleton />}>
@@ -55,7 +51,6 @@ export default function Home() {
       <aside className="hidden lg:block sticky top-20 self-start">
         <RightRail trends={trends} suggestions={suggestions} />
       </aside>
-
     </div>
   );
 }

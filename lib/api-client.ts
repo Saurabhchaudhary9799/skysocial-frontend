@@ -1,10 +1,5 @@
-import axios from "axios";
+import API from "./axios";
 
-
-const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
-});
 
 export const toggleLikePost = async (postId: string) => {
   const res = await API.post(`/posts/${postId}/like`);

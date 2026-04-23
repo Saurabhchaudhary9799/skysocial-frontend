@@ -1,9 +1,31 @@
-import getHomeFeed from "@/lib/api-server";
+"use client";
+
+import { useEffect, useState } from "react";
+import API from "@/lib/axios";
 import PostCard from "@/components/home/PostCard";
 import { PostCardProps } from "@/lib/types";
+import PostListSkeleton from "@/components/skeleton/postListSkeleton";
 
-export default async function PostList() {
-  const posts = await getHomeFeed();
+export default function PostList() {
+  const [posts, setPosts] = useState<PostCardProps[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await API.get("/posts/home-feed");
+        setPosts(res.data.result.posts || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  if (loading) return <PostListSkeleton />;
 
   if (posts.length === 0) {
     return (
@@ -15,7 +37,7 @@ export default async function PostList() {
 
   return (
     <div className="space-y-5">
-      {posts.map((post: PostCardProps) => (
+      {posts.map((post) => (
         <PostCard key={post._id} {...post} />
       ))}
     </div>

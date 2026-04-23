@@ -4,8 +4,8 @@ import { useState } from "react";
 import { User } from "@/store/useUserStore";
 import Image from "next/image";
 import Link from "next/link";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import { clearAuthSession } from "@/lib/auth-state";
 
 type Props = {
   user: User;
@@ -21,16 +21,11 @@ export default function ProfileModal({ user, onLogout }: Props) {
     try {
       setIsLoggingOut(true);
 
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/logout`,
-        {},
-        { withCredentials: true }
-      );
-
+      clearAuthSession();
       onLogout?.();
       setShowConfirm(false);
 
-      router.push("/login");
+      router.replace("/login");
     } catch (err) {
       console.error(err);
     } finally {

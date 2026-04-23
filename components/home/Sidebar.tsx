@@ -10,13 +10,6 @@ import CreatePostModal from "../post/createPostModal";
 import SidebarSkeleton from "../skeleton/sidebarSkeleton";
 import Image from "next/image";
 
-type SidebarProps = {
-  items: Array<{
-    label: string;
-    href: string;
-    icon: "home" | "messages" | "profile" ;
-  }>;
-};
 
 const iconMap = {
   home: House,
@@ -25,18 +18,29 @@ const iconMap = {
   // notification: Bell,
 };
 
-export default function Sidebar({ items }: SidebarProps) {
+ 
+
+
+export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
+const user = useUserStore((state) => state.user);
 
-  const user = useUserStore((state) => state.user);
-  
-
-  
   if (!user) {
-  return <SidebarSkeleton/>;
-}
+    return <SidebarSkeleton />;
+  }
+
+  /* ✅ DEFINE HERE */
+  const navItems = [
+    { label: "Home", href: "/home", icon: "home" as const },
+    { label: "Messages", href: "/messages", icon: "messages" as const },
+    {
+      label: "Profile",
+      href: `/profile/${user._id}`, // ✅ correct
+      icon: "profile" as const,
+    },
+  ];
 
   const initials = user.name
     .split(" ")
@@ -63,7 +67,7 @@ export default function Sidebar({ items }: SidebarProps) {
 
         {/* Nav */}
         <nav className="space-y-2">
-          {items.map((item) => {
+          {navItems.map((item) => {
             const Icon = iconMap[item.icon];
 
             const isActive =

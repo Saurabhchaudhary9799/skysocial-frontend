@@ -11,7 +11,7 @@ export type Message = {
 type Conversation = {
   userId: string;
   username: string;
-  profile_image?: string;
+  profile_image?: string | null;
   lastMessage: string;
   createdAt: string;
   isOwn?: boolean;
@@ -29,13 +29,17 @@ type ChatStore = {
   conversations: Conversation[];
 
   setActiveChat: (user: ChatUser | null) => void;
- setMessages: (
+  setMessages: (
   msgs: Message[] | ((prev: Message[]) => Message[])
 ) => void;
   addMessage: (msg: Message) => void;
 
   setConversations: (data: Conversation[]) => void;
-  updateConversation: (msg: Message, currentUserId: string,metaUser:any) => void;
+  updateConversation: (
+    msg: Message,
+    currentUserId: string,
+    metaUser?: Pick<ChatUser, "username" | "profile_image"> | null,
+  ) => void;
 };
 
 export const useChatStore = create<ChatStore>((set) => ({

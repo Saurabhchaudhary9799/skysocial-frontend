@@ -2,22 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function Page() {
   const router = useRouter();
+  const user = useUserStore((state) => state.user);
+  const isLoaded = useUserStore((state) => state.isLoaded);
 
   useEffect(() => {
-    const isAuthenticated = false; // Replace with your actual authentication logic
+    if (!isLoaded) return;
+    router.replace(user ? "/home" : "/login");
+  }, [isLoaded, router, user]);
 
-    if (isAuthenticated) {
-      router.push("/home");
-    } else {
-      router.push("/signup");
-    }
-  }, [router]);
- return null; // You can return a loading spinner or placeholder here if desired 
-  // return (
-    
-   
-  // );
+  return null;
 }

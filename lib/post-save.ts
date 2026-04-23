@@ -1,4 +1,5 @@
 import axios from "axios";
+import API from "./axios";
 
 export type SavedPost = {
   _id: string;
@@ -16,17 +17,9 @@ export const hasAlreadySaved = (
 };
 
 export const getSavedPostByUser = async (userId: string) => {
-  const apiBaseUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
   try {
-    const res = await axios.get(
-      `${apiBaseUrl}/users/${userId}/saved-posts`,
-      {
-        withCredentials: true,
-      }
-    );
-
+    const res = await API.get(`/users/${userId}/saved-posts`);
     return res.data.result; // 👈 already array
   } catch (error: unknown) {
   if (axios.isAxiosError(error)) {

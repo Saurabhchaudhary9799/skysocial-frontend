@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import PostModal from "../profile/postModal";
-import axios from "axios";
 import { User, useUserStore } from "@/store/useUserStore";
 import {
   addLikeIfMissing,
@@ -16,11 +15,7 @@ import {
   removeUserLike,
   type PostLike,
 } from "@/lib/post-likes";
-import {
-  getSavedPostByUser,
-  hasAlreadySaved,
- 
-} from "@/lib/post-save";
+import { getSavedPostByUser, hasAlreadySaved } from "@/lib/post-save";
 import { useSavedPostStore } from "@/store/useSavedPostStore";
 import { useFollowStore } from "@/store/useFollowStore";
 import { formatCount, formatTimeAgo } from "@/lib/format";
@@ -35,6 +30,7 @@ import { toast } from "sonner";
 
 import Image from "next/image";
 import { socket } from "@/lib/socket";
+import API from "@/lib/axios";
 
 export default function PostCard({
   _id,
@@ -51,7 +47,6 @@ export default function PostCard({
     useSavedPostStore();
   const { isFollowing, followUser, unfollowUser, fetchFollowings } =
     useFollowStore();
-  
 
   const author = user?.name || user?.username || "Unknown";
   const handle = `@${user?.username || "unknown"}`;
@@ -90,7 +85,7 @@ export default function PostCard({
     if (!currentUserId) return;
 
     fetchFollowings(currentUserId);
-  }, [currentUserId,fetchFollowings]);
+  }, [currentUserId, fetchFollowings]);
 
   useEffect(() => {
     if (!currentUserId) {
@@ -103,7 +98,7 @@ export default function PostCard({
     };
 
     fetchSavedPosts();
-  }, [currentUserId,setSavedPosts]);
+  }, [currentUserId, setSavedPosts]);
 
   const handleLike = async () => {
     if (!currentUserId || isLiking) {
@@ -112,13 +107,6 @@ export default function PostCard({
 
     try {
       setIsLiking(true);
-      // const response = await axios.post(
-      //   `${process.env.NEXT_PUBLIC_API_URL}/posts/${_id}/like`,
-      //   {},
-      //   {
-      //     withCredentials: true,
-      //   },
-      // );
 
       const data = await toggleLikePost(_id);
 
@@ -205,7 +193,7 @@ export default function PostCard({
       }
 
       socket.emit("followAndUnfollowUser", {
-        userId:authorId,
+        userId: authorId,
         username: currentUser?.username,
         action: message,
       });
@@ -271,7 +259,13 @@ export default function PostCard({
 
       {image ? (
         <div className="mt-4 overflow-hidden rounded-[1.5rem]">
-          <Image src={image} alt="post" width={400} height={400} className="h-96 w-full object-cover" />
+          <Image
+            src={image}
+            alt="post"
+            width={400}
+            height={400}
+            className="h-96 w-full object-cover"
+          />
         </div>
       ) : null}
 
@@ -334,10 +328,7 @@ export default function PostCard({
         onFollowToggle={handleFollowUnfollow}
         onDelete={async () => {
           try {
-            await axios.delete(
-              `${process.env.NEXT_PUBLIC_API_URL}/posts/${_id}`,
-              { withCredentials: true },
-            );
+            await API.delete(`/posts/${_id}`);
 
             if (currentUser) {
               setUser({

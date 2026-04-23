@@ -1,61 +1,39 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import ProfileClient from "@/components/profile/profileClient";
 import ProfileTabs from "@/components/profile/profileTabs";
-import axios from "axios";
-import { cookies } from "next/headers";
+import API from "@/lib/axios";
+import type { User } from "@/store/useUserStore";
 
+export default function Page() {
+  const { userId } = useParams();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await API.get(`/users/${userId}`);
+        setUser(res.data.user);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-async function getUser(userId: string) {
-  const cookieStore = await cookies();
-  const jwt = cookieStore.get("jwt")?.value;
- 
-  const apiBaseUrl =
-    process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:8000/api/v1";
-  
-  if (!jwt || !apiBaseUrl) {
-    return null;
-  }
-  try {
-    const res = await axios.get(`${apiBaseUrl}/users/${userId}`, {
-      headers: {
-        Accept: "application/json",
-        Cookie: cookieStore.toString(),
-      },
-      withCredentials: true,
-    });
-  
-    return res.data.user;
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-    return null;
-  }
-}
+    if (userId) fetchUser();
+  }, [userId]);
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ userId: string }>;
-}) {
-  const { userId } = await params;
-  const user = await getUser(userId);
-
+  if (loading) return <p>Loading...</p>;
   if (!user) return <p>User not found</p>;
 
   return (
-    <section className="space-y-6 px-2 py-4 ">
-      {/* <ProfileHeader
-        name={user.name}
-        username={user.username}
-        bio={user.bio}
-        profileImage={user.profile_image}
-        coverImage={user.cover_image}
-        followers={user.followersCount || 0}
-        following={user.followingCount || 0}
-        posts={user.postsCount || 0}
-      /> */}
+    <section className="space-y-6 px-2 py-4">
       <ProfileClient user={user} />
-
-      <ProfileTabs userId={userId} />
+      <ProfileTabs userId={userId as string} />
     </section>
   );
 }
