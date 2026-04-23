@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useUserStore } from "@/store/useUserStore"; // 🔥 Zustand
 import Image from "next/image";
 import API from "@/lib/axios";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 /* ✅ Zod Schema */
 const schema = z.object({
@@ -25,7 +26,7 @@ export default function EditProfilePage() {
   const router = useRouter();
 
   // 🔥 Zustand
-  const { user, setUser,isLoaded } = useUserStore();
+  const { user, setUser, isLoaded } = useUserStore();
 
   /* ✅ ALWAYS CALL HOOKS FIRST */
   const {
@@ -33,7 +34,6 @@ export default function EditProfilePage() {
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-    
   } = useForm<FormType>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -44,9 +44,9 @@ export default function EditProfilePage() {
   });
 
   const bioValue = useWatch({
-  control,
-  name: "bio",
-});
+    control,
+    name: "bio",
+  });
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
@@ -57,7 +57,7 @@ export default function EditProfilePage() {
   const [coverPreview, setCoverPreview] = useState(user?.cover_image || null);
 
   /* ✅ THEN condition */
-   useEffect(() => {
+  useEffect(() => {
     if (isLoaded && !user) {
       router.replace("/login"); // ✅ correct
     }
@@ -88,16 +88,29 @@ export default function EditProfilePage() {
   /* ✅ Submit */
   const onSubmit = async (data: FormType) => {
     try {
-      const formData = new FormData();
 
-      formData.append("name", data.name);
-      formData.append("username", data.username);
-      formData.append("bio", data.bio);
+      let profileImageUrl = user.profile_image;
+      let coverImageUrl = user.cover_image;
 
-      if (profileImage) formData.append("profile_image", profileImage);
-      if (coverImage) formData.append("cover_image", coverImage);
+      // 🔥 upload profile image
+      if (profileImage) {
+        profileImageUrl = await uploadToCloudinary(profileImage);
+      }
 
-     const res = await API.patch("/users/me", formData);
+      // 🔥 upload cover image
+      if (coverImage) {
+        coverImageUrl = await uploadToCloudinary(coverImage);
+      }
+
+      console.log("Profile Image URL:", profileImageUrl); // Debug log
+      console.log("Cover Image URL:", coverImageUrl); // Debug log
+      const res = await API.patch("/users/me", {
+        name: data.name,
+        username: data.username,
+        bio: data.bio,
+        profile_image: profileImageUrl,
+        cover_image: coverImageUrl,
+      });
       // console.log(res.data.data);
       // 🔥 IMPORTANT: update global store
       console.log("Updated user data from API:", res.data.data); // Debug log
