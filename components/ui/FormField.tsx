@@ -34,7 +34,7 @@ export default function FormField({
       {/* 🏷 LABEL */}
 
       <div className="flex justify-between">
-        <label className="text-sm font-manrope text-neutral mb-2 block">
+        <label className="text-sm font-manrope text-neutral  block">
           {label}
         </label>
         {rightLabel && <div>{rightLabel}</div>}
@@ -56,7 +56,7 @@ export default function FormField({
             font-body
             outline-none
             transition
-            focus:bg-surface-card
+            
             focus:ring-1 focus:ring-primary
             ghost-border
           "
@@ -67,7 +67,7 @@ export default function FormField({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral cursor-pointer"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>

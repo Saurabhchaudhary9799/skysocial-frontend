@@ -19,8 +19,8 @@ type RightRailProps = {
 
 export default function RightRail({ trends, suggestions }: RightRailProps) {
   return (
-    <aside className="space-y-5 ">
-      <section className="home-panel bg-white rounded-4xl p-5">
+    <aside className="space-y-2">
+      <section className="home-panel bg-white rounded-xl p-5">
         <div className="mb-4 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-bold text-on-surface">
@@ -47,7 +47,7 @@ export default function RightRail({ trends, suggestions }: RightRailProps) {
         </button>
       </section>
 
-      <section className="home-panel bg-white rounded-4xl p-5">
+      <section className="home-panel bg-white rounded-xl p-5">
         <h2 className="mb-4 text-sm font-bold text-on-surface">
           Suggested People
         </h2>

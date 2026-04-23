@@ -32,7 +32,7 @@ const postSchema = z.object({
     ),
 });
 
-export default function CreatePostModal({ onClose }: { onClose: () => void }) {
+export default function CreatePostModal({ onClose }:  { onClose: () => void }) {
   const { user, setUser } = useUserStore();
   const addPost = usePostStore((state) => state.addPost);
 
@@ -48,7 +48,14 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+   useEffect(() => {
+    if (!mounted) return;
+
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [mounted]);
 
   /* =========================
      ✅ IMAGE HANDLING
@@ -80,17 +87,20 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
     try {
       setLoading(true);
 
-      let imageUrl = "";
+   
 
-      if (image) {
-        imageUrl = await uploadToCloudinary(image); // 🔥 upload first
-      }
-console.log("Image URL after upload:", imageUrl); // Debug log
-      const res = await API.post("/posts", {
-        bio,
-        tags,
-        image: imageUrl,
-      });
+    let imageUrl = "";
+
+    if (image) {
+      imageUrl = await uploadToCloudinary(image); // 🔥 upload first
+    }
+
+    const res = await API.post("/posts", {
+      bio,
+      tags,
+      image: imageUrl,
+    });
+
 
       toast.success("Post created successfully 🚀");
       console.log(res);
@@ -112,7 +122,7 @@ console.log("Image URL after upload:", imageUrl); // Debug log
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create post ❌");
+      toast.error( "Failed to create post ❌");
     } finally {
       setLoading(false);
     }
@@ -175,13 +185,7 @@ console.log("Image URL after upload:", imageUrl); // Debug log
               </label>
             ) : (
               <div className="relative h-64 rounded-xl overflow-hidden">
-                <Image
-                  src={preview}
-                  alt="preview"
-                  width={400}
-                  height={400}
-                  className="w-full h-full object-cover"
-                />
+                <Image src={preview} alt="preview"  width={400} height={400} className="w-full h-full object-cover" />
                 <button
                   onClick={removeImage}
                   className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full"

@@ -3,6 +3,7 @@ import {
   Bookmark,
   EllipsisVertical,
   Heart,
+  Loader2,
   MessageCircle,
   Share,
 } from "lucide-react";
@@ -38,6 +39,7 @@ export default function PostCard({
   image,
   createdAt,
   user,
+  tags,
   comments = [],
   likes = [],
 }: PostCardProps) {
@@ -51,11 +53,6 @@ export default function PostCard({
   const author = user?.name || user?.username || "Unknown";
   const handle = `@${user?.username || "unknown"}`;
   const time = formatTimeAgo(createdAt);
-  // const initials = author
-  //   .split(" ")
-  //   .map((part) => part[0])
-  //   .join("")
-  //   .slice(0, 2);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [postOptionModalOpen, setPostOptionModalOpen] = useState(false);
@@ -63,8 +60,9 @@ export default function PostCard({
   const [localLikes, setLocalLikes] = useState<PostLike[]>(likes);
   const [localComments, setLocalComments] = useState<PostComment[]>(comments);
   const [isLiking, setIsLiking] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
-  // console.log(user);
   useEffect(() => {
     setLocalLikes(likes);
   }, [likes]);
@@ -80,6 +78,11 @@ export default function PostCard({
   const isSaved = hasAlreadySaved(savedPosts, _id);
   const likeCount = formatCount(localLikes.length);
   const commentCount = formatCount(localComments.length);
+
+  const [expanded, setExpanded] = useState(false);
+
+  const isLong = bio.length > 50;
+  const shortBio = bio.slice(0, 50);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -136,6 +139,7 @@ export default function PostCard({
   };
 
   const handleBookmark = async () => {
+    setSaveLoading(true);
     try {
       const data = await toggleSavePost(_id);
       const message = data?.message;
@@ -155,12 +159,14 @@ export default function PostCard({
       }
     } catch (err) {
       console.log(err);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
   const handleFollowUnfollow = async () => {
     if (!authorId) return;
-
+    setFollowLoading(true);
     try {
       const data = await toggleFollowUser(authorId);
 
@@ -201,30 +207,34 @@ export default function PostCard({
       toast.success(message);
     } catch (err) {
       console.error(err);
+    } finally {
+      setFollowLoading(false);
     }
   };
-  // console.log(savedPosts);
+
   return (
-    <article className="home-panel bg-white rounded-4xl p-5 lg:p-6">
+    <article className="home-panel bg-white rounded-2xl p-3 lg:p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          {user?.profile_image ? (
-            <Image
-              src={user.profile_image}
-              alt="Profile"
-              width={44}
-              height={44}
-              className="rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#171717] to-[#6f6f6f] text-xs font-bold text-white">
-              {author
-                .split(" ")
-                .map((part) => part[0])
-                .join("")
-                .slice(0, 2)}
-            </div>
-          )}
+          <div className="h-11 w-11 rounded-full overflow-hidden">
+            {user?.profile_image ? (
+              <Image
+                src={user.profile_image}
+                alt="Profile"
+                width={44}
+                height={44}
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#171717] to-[#6f6f6f] text-xs font-bold text-white">
+                {author
+                  .split(" ")
+                  .map((part) => part[0])
+                  .join("")
+                  .slice(0, 2)}
+              </div>
+            )}
+          </div>
           <div>
             <p className="flex items-center gap-2 text-sm font-semibold text-on-surface">
               {author}
@@ -238,12 +248,17 @@ export default function PostCard({
         <div className="flex justify-center items-center gap-3">
           {currentUser?._id !== authorId && !alreadyFollowing && (
             <button
-              className={`rounded-full px-4 py-1 text-sm font-semibold transition cursor-pointer bg-gradient-to-r from-primary to-primary-container text-white
+              className={`flex justify-center items-center w-20 rounded-full px-2 py-1 text-xs font-semibold  gap-2 transition cursor-pointer bg-gradient-to-r from-primary to-primary-container text-white
      
     `}
               onClick={handleFollowUnfollow}
+              disabled={followLoading}
             >
-              Follow
+              {followLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "follow"
+              )}
             </button>
           )}
           <span
@@ -292,7 +307,6 @@ export default function PostCard({
 
         <div className="flex items-center gap-2">
           <Share className="h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95" />
-          {/* <span>0</span> */}
         </div>
 
         <button
@@ -302,11 +316,31 @@ export default function PostCard({
           <Bookmark
             className={`h-6 w-6 cursor-pointer transition-transform duration-200 ease-out hover:scale-125 active:scale-95 ${
               isSaved ? "fill-black text-black" : ""
-            }`}
+            } ${saveLoading ? "pointer-events-none opacity-70" : ""}`}
           />
         </button>
       </div>
-      <p className="mt-4 text-sm leading-7 text-on-surface-variant">{bio}</p>
+      <p className="mt-2 text-sm leading-5 text-on-surface-variant">
+        {expanded || !isLong ? bio : `${shortBio}... `}
+
+        {isLong && (
+          <span
+            onClick={() => setExpanded(!expanded)}
+            className="cursor-pointer  text-primary hover:underline"
+          >
+            {expanded ? " show less" : "read more"}
+          </span>
+        )}
+      </p>
+      {tags && tags.length > 0 && (
+        <div className=" flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <span key={tag} className="text-sm font-medium text-primary   ">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
       {isModalOpen && (
         <PostModal
           postId={_id}

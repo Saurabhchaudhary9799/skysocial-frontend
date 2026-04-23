@@ -84,13 +84,13 @@ export default function ProfileTabs({ userId }: Props) {
                   <div
                     key={post._id}
                     onClick={() => setSelectedPostId(post._id)} // 👈 ADD
-                    className="relative w-full aspect-square rounded-4xl overflow-hidden cursor-pointer group"
+                    className="relative w-full aspect-square rounded-xl overflow-hidden cursor-pointer group"
                   >
                     {post.image ? (
                       <Image
                         src={post.image}
                         alt="post"
-                        className="w-full h-full object-cover rounded-4xl  transition duration-300 group-hover:scale-105"
+                        className="w-full h-full object-cover rounded-xl  transition duration-300 group-hover:scale-105"
                         width={400}
                         height={400}
                       />

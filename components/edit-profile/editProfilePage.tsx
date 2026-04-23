@@ -134,10 +134,10 @@ export default function EditProfilePage() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className=" mx-auto px-2 py-4 space-y-6"
+      className=" mx-auto px-2 sm:px-0  py-2 space-y-2"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white rounded-3xl px-4 py-3 shadow-md gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white rounded-xl px-4 py-3 shadow-md gap-3">
         {/* Left Section */}
         <div className="flex items-center gap-3 sm:gap-4">
           <button
@@ -188,7 +188,7 @@ export default function EditProfilePage() {
       <SectionCard title="Visual Identity">
         <div className="relative">
           {/* Cover */}
-          <div className="h-40 rounded-4xl overflow-hidden relative">
+          <div className="h-40 rounded-xl overflow-hidden relative">
             <Image
               src={
                 coverPreview ||

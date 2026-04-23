@@ -7,6 +7,7 @@ import {
   Clock,
   EllipsisVertical,
   Heart,
+  Loader2,
   MessageCircle,
   X,
 } from "lucide-react";
@@ -88,6 +89,11 @@ export default function PostModal({
   const [alreadyFollowing, setAlreadyFollowing] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
   const isSaved = hasAlreadySaved(savedPosts, postId);
+
+  const [expanded, setExpanded] = useState(false);
+  const [isLong, setIsLong] = useState(false);
+  const [shortBio, setShortBio] = useState("");
+
   useEffect(() => {
     setLocalLikes((prev) =>
       areLikesEqual(prev, initialLikes) ? prev : initialLikes,
@@ -126,6 +132,9 @@ export default function PostModal({
         setIsPostLoading(true);
         const res = await API.get(`/posts/${postId}`);
         setPost(res.data.post);
+        setIsLong(res.data.post.bio.length > 50);
+        setShortBio(res.data.post.bio.slice(0, 50));
+
         const nextLikes = res.data.post?.likes || [];
         setLocalLikes(nextLikes);
         const nextComments = res.data.post?.comments || [];
@@ -342,7 +351,7 @@ export default function PostModal({
         className="
       bg-white 
       w-full 
-      h-full 
+      max-h-screen 
       sm:h-auto 
       sm:max-h-[90vh]
       sm:max-w-2xl 
@@ -387,28 +396,26 @@ export default function PostModal({
         {/* RIGHT - DETAILS */}
         <div className="w-full md:w-1/2 flex flex-col bg-white min-h-0">
           {isPostLoading || !post ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
+            <div className="flex items-center justify-center h-full p-4">
+              <Loader2 className="w-8 h-8 animate-spin"/>
             </div>
           ) : (
             <>
               {/* Header */}
-              <div className="flex items-center justify-between p-3 sm:p-4 md:p-5 border-b border-gray-100">
+              <div className="flex items-center justify-between p-2 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5">
-                    <div className="w-full h-full rounded-full bg-white p-0.5">
-                      {post.user?.profile_image ? (
-                        <Image
-                          src={post?.user.profile_image}
-                          alt={post?.user.username || "profile"}
-                          width={400}
-                          height={400}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-400 to-pink-400" />
-                      )}
-                    </div>
+                  <div className="w-full h-full rounded-full bg-white p-0.5">
+                    {post.user?.profile_image ? (
+                      <Image
+                        src={post?.user.profile_image}
+                        alt={post?.user.username || "profile"}
+                        width={400}
+                        height={400}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-400 to-pink-400" />
+                    )}
                   </div>
                   <p className="font-semibold text-gray-900 text-sm sm:text-base">
                     {post.user?.username}
@@ -426,46 +433,53 @@ export default function PostModal({
               </div>
 
               {/* Caption */}
-              <div className="p-3 sm:p-4 md:p-5 border-b border-gray-100">
-                <p className="text-gray-800 text-sm sm:text-base leading-relaxed">
-                  {post.bio}
-                  {post.tags?.length > 0 && (
-                    <span className="ml-2">
-                      {post.tags.map((tag: string, index: number) => (
-                        <span
-                          key={index}
-                          className="text-primary font-medium mr-1 hover:underline cursor-pointer"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
+              <div className="p-3 s border-b border-gray-100">
+                <p className=" text-sm leading-5 text-on-surface-variant">
+                  {expanded || !isLong ? post?.bio : `${shortBio}... `}
+
+                  {isLong && (
+                    <span
+                      onClick={() => setExpanded(!expanded)}
+                      className="cursor-pointer  text-primary hover:underline"
+                    >
+                      {expanded ? " show less" : "read more"}
                     </span>
                   )}
                 </p>
+                {post?.tags && post?.tags.length > 0 && (
+                  <div className=" flex flex-wrap gap-2">
+                    {post?.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-sm font-medium text-primary   "
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Comments */}
-              <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-4 sm:space-y-5">
+              <div className="flex-1 max-h-32 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-4 sm:space-y-5">
                 {localComments?.length ? (
                   localComments.map((comment: Comment) => (
                     <div key={comment._id} className="flex gap-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0 p-0.5">
-                        <div className="w-full h-full rounded-full bg-white p-0.5">
-                          {comment.user?.profile_image ? (
-                            <Image
-                              src={comment.user.profile_image}
-                              alt={comment.user.username}
-                              width={400}
-                              height={400}
-                              className="w-full h-full rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-400 to-red-400" />
-                          )}
-                        </div>
+                      <div className="w-8 h-8 rounded-full bg-white p-0.5">
+                        {comment.user?.profile_image ? (
+                          <Image
+                            src={comment.user.profile_image}
+                            alt={comment.user.username}
+                            width={400}
+                            height={400}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-400 to-red-400" />
+                        )}
                       </div>
 
-                      <div className="flex-1 flex justify-between items-start bg-surface-container p-3 sm:p-4 rounded-bl-4xl rounded-r-4xl">
+                      <div className="flex-1 flex justify-between items-start ">
                         <div>
                           <p className="font-medium text-xs sm:text-sm">
                             {comment.user?.username}

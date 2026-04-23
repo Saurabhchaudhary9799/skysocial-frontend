@@ -39,7 +39,7 @@ const suggestions = [
 
 export default function Home() {
   return (
-    <div className="grid gap-y-2 gap-x-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:max-w-[1440px] mx-auto px-2 py-4">
+    <div className="grid gap-y-2 gap-x-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:max-w-[1440px] mx-auto  py-2">
       {/* Feed */}
       <section className="space-y-5 min-h-[60vh]">
         <Suspense fallback={<PostListSkeleton />}>
@@ -48,7 +48,7 @@ export default function Home() {
       </section>
 
       {/* Right Rail */}
-      <aside className="hidden lg:block sticky top-20 self-start">
+      <aside className="hidden lg:block sticky top-18 self-start">
         <RightRail trends={trends} suggestions={suggestions} />
       </aside>
     </div>

@@ -36,7 +36,7 @@ export default function PostList() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-2">
       {posts.map((post) => (
         <PostCard key={post._id} {...post} />
       ))}

@@ -87,7 +87,7 @@ const FriendsSidebar = () => {
   };
 
   return (
-    <div className="bg-white p-5 h-full overflow-y-auto rounded-4xl">
+    <div className="bg-white p-5 h-full overflow-y-auto rounded-xl">
       <h2 className="text-lg font-medium mb-4">Conversations</h2>
 
       {/* 🔍 Search */}

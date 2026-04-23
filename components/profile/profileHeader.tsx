@@ -25,7 +25,7 @@ export default function ProfileHeader({
   posts,
 }: Props) {
   return (
-    <div className="rounded-4xl bg-surface-card overflow-hidden sunken-purple-shadow">
+    <div className="rounded-xl bg-surface-card overflow-hidden sunken-purple-shadow">
       <div className="h-40 sm:h-48 md:h-52 w-full relative">
         {coverImage ? (
           <Image

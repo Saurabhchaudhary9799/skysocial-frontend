@@ -20,6 +20,22 @@ export default function PostOptionsModal({
   onFollowToggle,
   onDelete,
 }: Props) {
+
+  // const [mounted, setMounted] = useState(false);
+
+  // useEffect(() => {
+  //   setMounted(true);
+  // }, []);
+
+  // // ✅ Lock scroll
+  // useEffect(() => {
+  //   if (!mounted) return;
+
+  //   document.body.style.overflow = "hidden";
+  //   return () => {
+  //     document.body.style.overflow = "auto";
+  //   };
+  // }, [mounted]);
   // Close on ESC
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {

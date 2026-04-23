@@ -31,7 +31,7 @@ export default function Page() {
   if (!user) return <p>User not found</p>;
 
   return (
-    <section className="space-y-6 px-2 py-4">
+    <section className="space-y-6  py-2">
       <ProfileClient user={user} />
       <ProfileTabs userId={userId as string} />
     </section>

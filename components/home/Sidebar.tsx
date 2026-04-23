@@ -50,7 +50,7 @@ const user = useUserStore((state) => state.user);
     .toUpperCase();
 
   return (
-    <aside className="flex h-full max-h-screen flex-col justify-between gap-8 overflow-hidden bg-white p-5 lg:sticky lg:top-0 lg:h-screen lg:p-6 rounded-r-4xl">
+    <aside className="flex h-full max-h-screen flex-col justify-between gap-8 overflow-hidden bg-white p-5 lg:sticky lg:top-0 lg:h-screen lg:p-6 ">
       {/* Top */}
       <div className="space-y-8">
         <div className="flex items-center gap-3">

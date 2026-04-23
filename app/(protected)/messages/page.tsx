@@ -12,7 +12,7 @@ export default function ChatPage() {
   return (
    <div
   className={`
-    grid h-[calc(100vh-64px)] px-2 py-4 gap-4 lg:max-w-[1440px] mx-auto 
+    grid h-[calc(100vh-64px)]  py-2 gap-4 lg:max-w-[1440px] mx-auto 
     ${
       activeChat
         ? "grid-cols-1 md:grid-cols-[300px_1fr]"

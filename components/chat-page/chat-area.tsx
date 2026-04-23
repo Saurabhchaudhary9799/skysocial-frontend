@@ -204,7 +204,7 @@ export default function ChatArea() {
 
   if (!activeChat) {
     return (
-      <div className="flex items-center bg-white rounded-4xl justify-center h-full">
+      <div className="flex items-center bg-white rounded-xl justify-center h-full">
         Start chatting 👋
       </div>
     );
@@ -248,9 +248,9 @@ export default function ChatArea() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white   rounded-4xl ">
+    <div className="flex flex-col h-full bg-white   rounded-xl  ">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 border-b border-gray-100">
+      <div className="flex items-center gap-3 p-2 border-b border-gray-100">
         <button
           onClick={() => setActiveChat(null)}
           className="cursor-pointer p-2 rounded-full hover:bg-surface-active transition "

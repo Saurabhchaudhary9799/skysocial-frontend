@@ -82,9 +82,9 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background selection:bg-primary-container selection:text-on-primary overflow-hidden relative font-manrope celestial-mesh">
       <main className="flex items-center justify-center w-full px-4 relative z-10 py-10">
-        <div className="w-full max-w-[400px] bg-surface-card rounded-[2rem] p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow">
+        <div className="w-full max-w-[400px] bg-surface-card rounded-xl p-8 md:p-10 relative transition-all duration-500 hover:-translate-y-1 sunken-purple-shadow space-y-4">
           {/* Logo */}
-          <div className="flex flex-col items-center gap-2 mb-6">
+          <div className="flex flex-col items-center gap-2 ">
             <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container shadow-lg">
               {/* Big sparkle */}
               <svg
@@ -120,8 +120,8 @@ export default function Login() {
           </div>
 
           {/* Heading */}
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-extrabold tracking-tighter text-on-surface mb-2">
+          <div className="leading-7 text-center">
+            <h1 className="text-2xl font-extrabold tracking-tighter text-on-surface mb-2">
               Welcome Back
             </h1>
             <p className="text-sm text-on-surface-variant">
