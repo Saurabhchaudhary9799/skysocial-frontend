@@ -13,9 +13,7 @@ type RetriableRequestConfig = {
 
 const API = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  
 });
 
 /* ✅ REQUEST INTERCEPTOR (attach accessToken) */
@@ -26,10 +24,7 @@ API.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  if (config.data instanceof FormData) {
-    config.headers["Content-Type"] = "multipart/form-data";
-  }
-
+ 
   return config;
 });
 
@@ -38,7 +33,7 @@ let refreshPromise: Promise<string | null> | null = null;
 async function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = axios
-      .post(`${process.env.NEXT_PUBLIC_API_URL}/refresh-token`, {
+      .post(`${process.env.NEXT_PUBLIC_API_URL}/users/refresh-token`, {
         refreshToken: readRefreshToken(),
       })
       .then((res) => {
