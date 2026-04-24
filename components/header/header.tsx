@@ -44,6 +44,7 @@ export default function Header() {
       </div>
       <div className="flex items-center  gap-2 md:gap-4">
         <button
+          aria-label="Create Post"
           className="p-2 block lg:hidden hover:bg-surface-active transition rounded-full cursor-pointer"
           onClick={() => {
             setOpenCreatePost((prev) => !prev);
@@ -55,7 +56,7 @@ export default function Header() {
         </button>
         <Link
           href="/messages"
-          className="p-2 rounded-full hover:bg-surface-active transition block lg:hidden"
+          className="sr-only p-2 rounded-full hover:bg-surface-active transition block lg:hidden"
         >
           <MessageCircle className="h-5 w-5 cursor-pointer hover:text-gray-600 transition" />
         </Link>
@@ -65,6 +66,7 @@ export default function Header() {
             setOpen((prev) => !prev);
             setOpenProfile(false);
           }}
+          aria-label="Open notifications"
           className="relative p-2 rounded-full hover:bg-surface-active transition cursor-pointer "
         >
           <Bell className="h-5 w-5" />

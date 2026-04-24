@@ -2,10 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import ProfileClient from "@/components/profile/profileClient";
-import ProfileTabs from "@/components/profile/profileTabs";
+import dynamic from "next/dynamic";
 import API from "@/lib/axios";
 import type { User } from "@/store/useUserStore";
+import ProfileSkeleton from "@/components/skeleton/profileHeaderSkeleton";
+import ProfilePostSkeleton from "@/components/skeleton/profilePostSkeleton";
+
+// ✅ Lazy load components
+const ProfileClient = dynamic(
+  () => import("@/components/profile/profileClient"),
+  {
+    loading: () => <ProfileSkeleton />,
+  }
+);
+
+const ProfileTabs = dynamic(
+  () => import("@/components/profile/profileTabs"),
+  {
+    loading: () => <ProfilePostSkeleton />, // 👈 posts skeleton
+  }
+);
 
 export default function Page() {
   const { userId } = useParams();
@@ -13,6 +29,8 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!userId) return;
+
     const fetchUser = async () => {
       try {
         const res = await API.get(`/users/${userId}`);
@@ -24,14 +42,15 @@ export default function Page() {
       }
     };
 
-    if (userId) fetchUser();
+    fetchUser();
   }, [userId]);
 
-  if (loading) return <p>Loading...</p>;
+  // ✅ Profile skeleton
+  if (loading) return <ProfileSkeleton />;
   if (!user) return <p>User not found</p>;
 
   return (
-    <section className="space-y-6  py-2">
+    <section className="space-y-6 p-2 md:p-4">
       <ProfileClient user={user} />
       <ProfileTabs userId={userId as string} />
     </section>

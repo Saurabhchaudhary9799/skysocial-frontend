@@ -2,14 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { usePostStore } from "@/store/usePostStore";
-import PostModal from "@/components/profile/postModal";
+// import PostModal from "@/components/profile/postModal";
 import type { PostLike } from "@/lib/post-likes";
 import Image from "next/image";
 import { PostCardProps } from "@/lib/types";
 import API from "@/lib/axios";
+import ProfilePostSkeleton from "../skeleton/profilePostSkeleton";
+import dynamic from "next/dynamic";
+
+const PostModal = dynamic(() => import("@/components/profile/postModal"), {
+  ssr: false,
+});
 
 type Props = {
   userId: string;
+};
+
+export const optimizeImage = (url: string, width = 500) => {
+  return url.replace(
+    "/upload/",
+    `/upload/f_auto,q_auto,w_${width}/`
+  );
 };
 
 export default function ProfileTabs({ userId }: Props) {
@@ -22,29 +35,20 @@ export default function ProfileTabs({ userId }: Props) {
 
   const updatePostLikes = usePostStore((state) => state.updatePostLikes);
 
-  //   useEffect(() => {
-  //     if (!userId) {
-  //       return
-  //     }
-  //     const fetchSavedPosts = async () => {
-  //       const data = await getSavedPostByUser(userId);
-  //       setSavedPosts(data || []);
-  // // console.log(data);
-
-  //     }
-
-  //     fetchSavedPosts();
-  //   }, [userId])
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        setLoading(true);
         const res = await API.get(`/posts/user/${userId}`);
 
         setPosts(res.data.result.posts);
       } catch (error) {
         console.error("Error fetching posts:", error);
         console.log("Failed to fetch posts");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -75,24 +79,27 @@ export default function ProfileTabs({ userId }: Props) {
 
       <div className="mt-4 text-center text-on-surface-variant">
         {active === "posts" && (
-          <div>
-            {posts.length === 0 ? (
+          <>
+            {/* ✅ Loading skeleton */}
+            {loading ? (
+              <ProfilePostSkeleton />
+            ) : posts.length === 0 ? (
               <p>No posts yet</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 sm:gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1 sm:gap-2">
                 {posts.map((post) => (
                   <div
                     key={post._id}
-                    onClick={() => setSelectedPostId(post._id)} // 👈 ADD
+                    onClick={() => setSelectedPostId(post._id)}
                     className="relative w-full aspect-square rounded-xl overflow-hidden cursor-pointer group"
                   >
                     {post.image ? (
                       <Image
-                        src={post.image}
-                        alt="post"
-                        className="w-full h-full object-cover rounded-xl  transition duration-300 group-hover:scale-105"
+                        src={optimizeImage(post.image, 400)}
+                        alt={`Post by ${post?.user || "user"}`}
                         width={400}
                         height={400}
+                        className="w-full h-full object-cover rounded-xl transition duration-300 group-hover:scale-105"
                       />
                     ) : (
                       <div className="bg-gray-200 w-full h-full" />
@@ -103,7 +110,7 @@ export default function ProfileTabs({ userId }: Props) {
                 ))}
               </div>
             )}
-          </div>
+          </>
         )}
 
         {active === "collections" && <p>collection</p>}

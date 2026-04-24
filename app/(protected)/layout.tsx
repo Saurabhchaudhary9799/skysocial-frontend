@@ -20,7 +20,7 @@ export default async function ProtectedLayout({
               <Sidebar />
             </aside>
 
-            <div className="min-w-0 ">
+            <div className="min-w-0 space-y-2">
               <Header />
               {children}
             </div>
