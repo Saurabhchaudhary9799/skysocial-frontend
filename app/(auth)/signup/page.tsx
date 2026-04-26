@@ -4,7 +4,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useState } from "react";
-import FormField from "@/components/ui/FormField";
 import API from "@/lib/axios";
 import { initializeSession } from "@/lib/auth-client";
 
@@ -155,43 +154,85 @@ export default function Signup() {
               handleSubmit();
             }}
           >
-            <FormField
-              label="Full Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Jane Doe"
-              error={errors.name}
-            />
+            {/* Full Name */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-on-surface">
+                Full Name
+              </label>
 
-            <FormField
-              label="Username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="janedoe"
-              error={errors.username}
-            />
+              <input
+                type="text"
+                name="name"
+                placeholder="Jane Doe"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
 
-            <FormField
-              label="Email Address"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="name@example.com"
-              error={errors.email}
-            />
+              {errors.name && (
+                <p className="text-xs text-red-500">{errors.name}</p>
+              )}
+            </div>
 
-            <FormField
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              error={errors.password}
-            />
+            {/* Username */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-on-surface">
+                Username
+              </label>
+
+              <input
+                type="text"
+                name="username"
+                placeholder="janedoe"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
+
+              {errors.username && (
+                <p className="text-xs text-red-500">{errors.username}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-on-surface">
+                Email Address
+              </label>
+
+              <input
+                type="email"
+                name="email"
+                placeholder="name@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
+
+              {errors.email && (
+                <p className="text-xs text-red-500">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-on-surface">
+                Password
+              </label>
+
+              <input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
+
+              {errors.password && (
+                <p className="text-xs text-red-500">{errors.password}</p>
+              )}
+            </div>
 
             {/* Terms */}
             <div className="flex items-start gap-2 px-1">
@@ -219,7 +260,7 @@ export default function Signup() {
 
           {/* Footer text */}
           <div className="mt-6 flex flex-col items-center gap-3">
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-sm text-on-surface-variant">
               Already have an account?{" "}
               <a
                 href="/login"

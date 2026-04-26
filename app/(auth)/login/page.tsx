@@ -4,7 +4,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
-import FormField from "@/components/ui/FormField";
 import API from "@/lib/axios";
 import { initializeSession } from "@/lib/auth-client";
 
@@ -120,7 +119,7 @@ export default function Login() {
           </div>
 
           {/* Heading */}
-          <div className="leading-7 text-center">
+          <div className="text-center">
             <h1 className="text-2xl font-extrabold tracking-tighter text-on-surface mb-2">
               Welcome Back
             </h1>
@@ -137,32 +136,54 @@ export default function Login() {
               handleSubmit();
             }}
           >
-            <FormField
-              label="Username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="janedoe"
-              error={errors.username}
-            />
+            {/* Username */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-on-surface">
+                Username
+              </label>
 
-            <FormField
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              error={errors.password}
-              rightLabel={
+              <input
+                type="text"
+                name="username"
+                placeholder="janedoe"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
+
+              {errors.username && (
+                <p className="text-xs text-red-500">{errors.username}</p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-on-surface">
+                  Password
+                </label>
+
                 <a
-                  href="#"
+                  href="/forgot-password"
                   className="text-primary text-xs font-semibold hover:underline"
                 >
                   Forgot?
                 </a>
-              }
-            />
+              </div>
+
+              <input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
+
+              {errors.password && (
+                <p className="text-xs text-red-500">{errors.password}</p>
+              )}
+            </div>
 
             {/* Remember me */}
             <div className="flex items-center gap-2 px-1">
@@ -206,7 +227,7 @@ export default function Login() {
 
           {/* Footer text */}
           <div className="mt-6 flex flex-col items-center gap-3">
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-sm text-on-surface-variant">
               New to the sky?{" "}
               <a
                 href="/signup"
